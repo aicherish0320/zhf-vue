@@ -19,11 +19,14 @@
       Vue 并不是 MVVM , Vue 默认只是做视图
       渐进式 -> 组件化 + vue-router + vuex + vue-cli
      */
-    new Vue({
+    const vm = new Vue({
       el: '#app',
       data() {
         return {
-          message: 'hello aic'
+          message: 'hello aic',
+          foo: {
+            bar: 'bar'
+          }
         }
       }
     })

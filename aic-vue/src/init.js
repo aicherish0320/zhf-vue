@@ -9,7 +9,6 @@ function initMixin(Vue) {
     initState(vm)
 
     if (vm.$options.el) {
-      console.log('挂载')
     }
   }
 }
