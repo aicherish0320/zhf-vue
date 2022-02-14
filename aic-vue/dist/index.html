@@ -6,9 +6,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
   </head>
-  <body></body>
+  <body>
+    <div id="app">{{message}}</div>
+  </body>
   <script src="./vue.js"></script>
   <script>
-    console.log(Vue)
+    /**
+      Vue 默认支持响应式数据变化
+      1. 响应式: 数据变化->页面变化
+      2. 双向绑定: 页面变化( 表单输入 input checkbox... )->数据变化 数据变化->页面变化
+
+      Vue 并不是 MVVM , Vue 默认只是做视图
+      渐进式 -> 组件化 + vue-router + vuex + vue-cli
+     */
+    new Vue({
+      el: '#app',
+      data() {
+        return {
+          message: 'hello aic'
+        }
+      }
+    })
   </script>
 </html>
