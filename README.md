@@ -10,3 +10,14 @@
 - `@babel/core`： babel 核心模块
 - `@babel/preset-env`：将高级语法转化成低级语法
 - `rollup-plugin-babel`：rollup 中使用 babel 插件
+
+## Vue 的初始化流程
+
+`Vue` 默认支持响应式数据变化 （双向绑定）
+
+1. 双向绑定页面得需要能修改（表单 `radio` `checkbox` `input` `textarea）数据变化可以影响视图显示`
+2. 响应式数据变化 能监控到数据变化 并且更新视图 （单向的）
+
+`Vue` 模式 并不是 `MVVM`，Vue 默认只是做视图的，渐进式 + 组件化 + vue-router + vuex +vue-cli
+
+我们要知道数据是如何变化的，`Object.defineProperty`将对象中原有的属性 更改成带有 get 和 set 的一个属性，这样当修改的时候 会触发 set 方法 -> 更新视图

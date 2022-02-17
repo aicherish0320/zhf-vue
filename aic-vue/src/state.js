@@ -1,7 +1,7 @@
 import { observe } from './observe'
 import { isFunction } from './utils'
 
-function initState(vm) {
+export function initState(vm) {
   const opts = vm.$options
   if (opts.data) {
     initData(vm)
@@ -16,5 +16,3 @@ function initData(vm) {
 
   console.log(data)
 }
-
-export default initState
