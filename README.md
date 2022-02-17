@@ -21,3 +21,11 @@
 `Vue` 模式 并不是 `MVVM`，Vue 默认只是做视图的，渐进式 + 组件化 + vue-router + vuex +vue-cli
 
 我们要知道数据是如何变化的，`Object.defineProperty`将对象中原有的属性 更改成带有 get 和 set 的一个属性，这样当修改的时候 会触发 set 方法 -> 更新视图
+
+## new Vue 发生什么
+
+1. `new Vue` 会调用 `_init` 方法进行初始化操作
+2. 会将用户的选项放到 `vm.$options` 上
+3. 会对当前属性上搜索有没有 `data` 数据 `initState`
+4. 有 `data`，判断 `data` 是不是一个函数，如果是函数则取返回值 `initData`
+5. 如果有 `el` 需要挂载到页面上
