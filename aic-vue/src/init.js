@@ -13,6 +13,13 @@ export function initMixin(Vue) {
 
     if (vm.$options.el) {
       // 要将数据挂载到页面上
+      // 数据变化需要更新视图，diff 算法更新需要更新的部分
+      // vue -> template（写起来更方便）
+      // vue3 -> template 写起来性能会更高，内部做了很多优化
+      // template -> ast 语法树（用来描述语法的，虚拟 DOM 描述 DOM 节点）-> 描述成一个树结构 -> 将代码重组成 JS 语法
+      // 模板编译原理：把template模板编译成 render 函数，render 函数返回 虚拟DOM -> diff 算法对比虚拟DOM
+      // ast -> render -> vNode -> 真实DOM
+      // 更新的时候 再次调用 render 生成新的vNode -> 新旧比对 -> 更新真实DOM
     }
   }
 }
