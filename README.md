@@ -28,4 +28,17 @@
 2. 会将用户的选项放到 `vm.$options` 上
 3. 会对当前属性上搜索有没有 `data` 数据 `initState`
 4. 有 `data`，判断 `data` 是不是一个函数，如果是函数则取返回值 `initData`
+   ...
 5. 如果有 `el` 需要挂载到页面上
+
+数组也可以使用 `defineProperty` 但是我们很少去采用 `arr[1] = xxx`
+如果数组也是用了 defineProperty 还是可以实现修改索引触发更新，但是这种操作概率很低，索引源码没有采用这个方法
+
+Vue2 中，数组修改索引不会导致视图更新，修改 length 也不会更新
+
+Vue3 为了兼容 proxy 内部对数组用的就是 `defineProperty`
+
+正常用户修改数组，无非采用数组的变异方法，push/pop/slice/shift/unshift/reverse/sort
+
+1. 每个对象都有一个`__proto__`属性，它指向所属类的原型 `fn.__proto__ = Function.prototype`
+2. 每个原型上都有一个`constructor`属性，指向函数本身`Function.prototype.constructor = Function`

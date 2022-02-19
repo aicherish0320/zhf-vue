@@ -1,9 +1,15 @@
-import { isObject } from '../utils'
+import { isArray, isObject } from '../utils'
+import { arrayMethods } from './array'
 
 class Observer {
   constructor(value) {
-    // 核心就是循环对象
-    this.walk(value)
+    if (isArray(value)) {
+      // 更改数组原型方法
+      value.__proto__ = arrayMethods
+    } else {
+      // 核心就是循环对象
+      this.walk(value)
+    }
   }
 
   walk(data) {
