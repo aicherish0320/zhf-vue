@@ -27,11 +27,10 @@
           foo: {
             bar: 'bar'
           },
-          arr: [1, 2, 3]
+          // 不能通过更改数组长度和索引（无法监控）
+          arr: [{ a: 1 }, 2, 3]
         }
       }
     })
-
-    console.log('_data >>> ', vm.message, vm.arr)
   </script>
 </html>

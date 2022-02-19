@@ -3,18 +3,29 @@ import { arrayMethods } from './array'
 
 class Observer {
   constructor(value) {
+    // 给对象和数组添加一个自定义属性
+    Object.defineProperty(value, '__ob__', {
+      enumerable: false,
+      value: this
+    })
     if (isArray(value)) {
       // 更改数组原型方法
       value.__proto__ = arrayMethods
+      this.observeArray(value)
     } else {
       // 核心就是循环对象
       this.walk(value)
     }
   }
+  // 递归遍历数组，对数组内部的对象再次重写
+  observeArray(data) {
+    // 数组里面如果是引用类型那么是响应式的
+    data.forEach((item) => observe(item))
+  }
 
   walk(data) {
     Object.keys(data).forEach((key) => {
-      // 要是用 defineProperty 重新定义
+      // 使用 defineProperty 重新定义
       defineReactive(data, key, data[key])
     })
   }
@@ -30,11 +41,14 @@ function defineReactive(obj, key, value) {
   observe(value)
   Object.defineProperty(obj, key, {
     get() {
+      console.log('get >>> ', key, value)
       // 闭包，value 会向上层查找
       return value
     },
     set(newVal) {
       if (value !== newVal) {
+        console.log('set >>> ', key, newVal)
+        observe(newVal)
         value = newVal
       }
     }
@@ -44,6 +58,11 @@ function defineReactive(obj, key, value) {
 export function observe(value) {
   // 如果 value 不是对象，那么就不用观察了
   if (!isObject(value)) {
+    return
+  }
+
+  // 一个对象不需要重新被观测
+  if (value.__ob__) {
     return
   }
 

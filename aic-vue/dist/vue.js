@@ -22,25 +22,62 @@
   const methods = ['push', 'pop', 'unshift', 'reverse', 'sort', 'splice', 'shift'];
   methods.forEach(method => {
     // 属性的查找，是先找自己身上的，找不到去原型上查找
-    arrayMethods[method] = function () {
-      console.log('数组的方法进行重写操作');
+    arrayMethods[method] = function (...args) {
+      // 数组新增的属性 要看一下是不是对象 如果是对象 则继续进行劫持
+      // 需要调用数组原生逻辑
+      oldArrayPrototype[method].call(this, ...args); // TODO... 可以添加自己的逻辑 函数劫持 切片
+
+      let inserted = null;
+      let ob = this.__ob__;
+
+      switch (method) {
+        // 修改 删除 添加
+        case 'splice':
+          inserted = args.slice(2); // splice 方法从第三个参数起 是添加的新数据
+
+          break;
+
+        case 'push':
+        case 'unshift':
+          // 调用 push/unshift 传递的参数就是新增的逻辑
+          inserted = args;
+          break;
+      } // inserted 遍历数组，看一个它是否需要进行再次劫持
+
+
+      if (inserted) {
+        ob.observeArray(inserted);
+      }
     };
   });
 
   class Observer {
     constructor(value) {
+      // 给对象和数组添加一个自定义属性
+      Object.defineProperty(value, '__ob__', {
+        enumerable: false,
+        value: this
+      });
+
       if (isArray(value)) {
         // 更改数组原型方法
         value.__proto__ = arrayMethods;
+        this.observeArray(value);
       } else {
         // 核心就是循环对象
         this.walk(value);
       }
+    } // 递归遍历数组，对数组内部的对象再次重写
+
+
+    observeArray(data) {
+      // 数组里面如果是引用类型那么是响应式的
+      data.forEach(item => observe(item));
     }
 
     walk(data) {
       Object.keys(data).forEach(key => {
-        // 要是用 defineProperty 重新定义
+        // 使用 defineProperty 重新定义
         defineReactive(data, key, data[key]);
       });
     }
@@ -59,12 +96,15 @@
     observe(value);
     Object.defineProperty(obj, key, {
       get() {
-        // 闭包，value 会向上层查找
+        console.log('get >>> ', key, value); // 闭包，value 会向上层查找
+
         return value;
       },
 
       set(newVal) {
         if (value !== newVal) {
+          console.log('set >>> ', key, newVal);
+          observe(newVal);
           value = newVal;
         }
       }
@@ -75,6 +115,11 @@
   function observe(value) {
     // 如果 value 不是对象，那么就不用观察了
     if (!isObject(value)) {
+      return;
+    } // 一个对象不需要重新被观测
+
+
+    if (value.__ob__) {
       return;
     } // 需要对对象进行观测 （最外层必须是一个 {}， 不能是数组）
     // 如果一个数据已经被观测过了，就不要再进行观测了，用类来实现，观测过了就增加一个标识
@@ -105,6 +150,7 @@
       proxy(vm, key, '_data');
     }
   } // 将数据代理带 vm 上
+  // 取值的时候做代理，不是暴力的把 _data 属性赋予给 vm，而且直接赋值会有命名冲突问题
 
 
   function proxy(vm, key, source) {
@@ -114,9 +160,7 @@
       },
 
       set(newVal) {
-        if (newVal !== value) {
-          vm[source][key] = newVal;
-        }
+        vm[source][key] = newVal;
       }
 
     });

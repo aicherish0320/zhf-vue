@@ -30,9 +30,7 @@ function proxy(vm, key, source) {
       return vm[source][key]
     },
     set(newVal) {
-      if (newVal !== value) {
-        vm[source][key] = newVal
-      }
+      vm[source][key] = newVal
     }
   })
 }
