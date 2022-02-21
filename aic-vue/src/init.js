@@ -1,3 +1,4 @@
+import { compileToFunction } from './compiler'
 import { initState } from './state'
 
 export function initMixin(Vue) {
@@ -20,6 +21,28 @@ export function initMixin(Vue) {
       // 模板编译原理：把template模板编译成 render 函数，render 函数返回 虚拟DOM -> diff 算法对比虚拟DOM
       // ast -> render -> vNode -> 真实DOM
       // 更新的时候 再次调用 render 生成新的vNode -> 新旧比对 -> 更新真实DOM
+      vm.$mount(vm.$options.el)
     }
+  }
+  Vue.prototype.$mount = function (el) {
+    const vm = this
+    const opts = vm.$options
+    // 获取真实的元素
+    el = document.querySelector(el)
+    // 页面真实元素
+    vm.$el = el
+
+    if (!opts.render) {
+      // 模板编译
+      let template = opts.template
+      if (!template) {
+        template = el.outerHTML
+      }
+
+      let render = compileToFunction(template)
+      opts.render = render
+    }
+
+    // console.log('render >>> ', opts.render)
   }
 }
