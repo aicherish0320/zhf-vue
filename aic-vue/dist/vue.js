@@ -4,11 +4,6 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Vue = factory());
 })(this, (function () { 'use strict';
 
-  function compileToFunction(template) {
-    // 1. 将模板编程 ast 语法树
-    parseHTML(template);
-  }
-
   function parseHTML(html) {
     // 正则
     const ncname = `[a-zA-Z_][\\-\\.0-9_a-zA-Z]*`; // 匹配标签名
@@ -142,7 +137,13 @@
       }
     }
 
-    console.log('root >>> ', root);
+    return root;
+  }
+
+  function compileToFunction(template) {
+    // 1. 将模板编程 ast 语法树
+    const ast = parseHTML(template);
+    console.log('ast >>> ', ast);
   }
 
   function isFunction(data) {
