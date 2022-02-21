@@ -14,14 +14,49 @@ function parseHTML(html) {
   const startTagClose = /^\s*(\/?)>/ // 匹配结束标签 > />
   const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
   // 构建父子关系
-  function start(tagName, attrs) {
-    console.log('==start==', tagName, attrs)
+  let stack = []
+  let root = null
+
+  function createASTElement(tag, attrs, parent = null) {
+    return {
+      tag,
+      type: 1,
+      children: [],
+      parent,
+      attrs
+    }
   }
-  function end(tagName) {
-    console.log('==end==', tagName)
+  function start(tag, attrs) {
+    // 遇到开始标签，就取栈中的最后一个 作为父级
+    const parent = stack[stack.length - 1]
+    let element = createASTElement(tag, attrs, parent)
+    // 说明当前节点就是根节点
+    if (root === null) {
+      root = element
+    }
+    if (parent) {
+      // 更新父级节点
+      element.parent = parent
+      parent.children.push(element)
+    }
+
+    stack.push(element)
+  }
+  function end(tag) {
+    const endTag = stack.pop()
+    if (endTag.tag !== tag) {
+      console.log('标签出错了')
+    }
   }
   function text(chars) {
-    console.log('==chars==', chars)
+    const parent = stack[stack.length - 1]
+    chars.replace(/\s/g, '')
+    if (chars) {
+      parent.children.push({
+        type: 2,
+        text: chars
+      })
+    }
   }
 
   function advance(len) {
@@ -86,4 +121,5 @@ function parseHTML(html) {
       advance(chars.length)
     }
   }
+  console.log('root >>> ', root)
 }
