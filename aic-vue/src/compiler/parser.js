@@ -7,7 +7,6 @@ export function parseHTML(html) {
   const attribute =
     /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/ // 匹配属性
   const startTagClose = /^\s*(\/?)>/ // 匹配结束标签 > />
-  const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
   // 构建父子关系
   let stack = []
   let root = null

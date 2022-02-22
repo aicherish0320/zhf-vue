@@ -47,3 +47,8 @@ Vue3 为了兼容 proxy 内部对数组用的就是 `defineProperty`
 
 1. 每个对象都有一个`__proto__`属性，它指向所属类的原型 `fn.__proto__ = Function.prototype`
 2. 每个原型上都有一个`constructor`属性，指向函数本身`Function.prototype.constructor = Function`
+
+3. 编译原理
+4. 响应式原理，依赖收集
+5. 组件化开发 （贯穿了 vue 的流程）
+6. diff 算法
