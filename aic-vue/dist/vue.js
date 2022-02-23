@@ -133,7 +133,7 @@
 
     function text(chars) {
       const parent = stack[stack.length - 1];
-      chars.replace(/\s/g, '');
+      chars = chars.replace(/\s/g, '');
 
       if (chars) {
         parent.children.push({
@@ -217,12 +217,62 @@
 
   function compileToFunction(template) {
     // 1. 将模板编程 ast 语法树
-    const ast = parseHTML(template); // 2. 代码优化 编辑静态节点
+    const ast = parseHTML(template);
+    console.log('ast >>> ', ast); // 2. 代码优化 编辑静态节点
     // 3. 代码生成
 
-    const code = generate(ast);
-    const render = new Function(`with(this){${code}}`);
-    console.log('code >>> ', render.toString());
+    const code = generate(ast); // 模板引擎的实现原理都是 new Function + with
+
+    const render = new Function(`with(this){return ${code}}`);
+    return render;
+  }
+
+  function patch(el, vnode) {
+    // 根据虚拟节点 渲染成真实节点
+    const elm = createElm(vnode);
+    const parentNode = el.parentNode;
+    parentNode.insertBefore(elm, el.nextSibling);
+    parentNode.removeChild(el); // 删除老节点 根据 vnode 创建新节点 替换掉老节点
+  } // 面试问：虚拟节点的实现 虚拟节点 -> 真实节点
+
+  function createElm(vnode) {
+    const {
+      tag,
+      data,
+      children,
+      text,
+      vm
+    } = vnode; // 让虚拟节点和真实节点做一个映射，后续某个虚拟节点更新了 我们可以跟踪到真实节点，并且更新真实节点
+
+    if (typeof tag === 'string') {
+      vnode.el = document.createElement(tag);
+      updateProperties(vnode.el, data);
+      children.forEach(child => {
+        vnode.el.appendChild(createElm(child));
+      });
+    } else {
+      // 文本
+      vnode.el = document.createTextNode(text);
+    }
+
+    return vnode.el;
+  }
+
+  function updateProperties(el, props = {}) {
+    for (let key in props) {
+      el.setAttribute(key, props[key]);
+    }
+  }
+
+  function mountComponent(vm) {
+    vm._update(vm._render());
+  }
+  function lifecycleMixin(vue) {
+    vue.prototype._update = function (vnode) {
+      // 采用的是 先序深度遍历 创建节点 （遇到节点就创造节点，递归创建）
+      const vm = this;
+      vm.$el = patch(vm.$el, vnode);
+    };
   }
 
   function isFunction(data) {
@@ -317,14 +367,14 @@
     observe(value);
     Object.defineProperty(obj, key, {
       get() {
-        console.log('get >>> ', key, value); // 闭包，value 会向上层查找
-
+        // console.log('get >>> ', key, value)
+        // 闭包，value 会向上层查找
         return value;
       },
 
       set(newVal) {
         if (value !== newVal) {
-          console.log('set >>> ', key, newVal);
+          // console.log('set >>> ', key, newVal)
           observe(newVal);
           value = newVal;
         }
@@ -428,8 +478,61 @@
 
         let render = compileToFunction(template);
         opts.render = render;
-      } // console.log('render >>> ', opts.render)
+      }
 
+      mountComponent(vm); // console.log('render >>> ', opts.render)
+    };
+  }
+
+  // 返回虚拟节点
+  function createElement(vm, tag, data = {}, ...children) {
+    return vnode(vm, tag, data, children, data.key, undefined);
+  }
+  function createText(vm, text) {
+    return vnode(vm, undefined, undefined, undefined, undefined, text);
+  }
+
+  function vnode(vm, tag, data, children, key, text) {
+    return {
+      vm,
+      tag,
+      data,
+      children,
+      key,
+      text
+    };
+  }
+
+  function renderMixin(Vue) {
+    // 创建元素
+    Vue.prototype._c = function () {
+      const vm = this;
+      return createElement(vm, ...arguments);
+    }; // 创建文本虚拟节点
+
+
+    Vue.prototype._v = function (text) {
+      const vm = this;
+      return createText(vm, text);
+    }; // stringify()
+
+
+    Vue.prototype._s = function (val) {
+      if (isObject(val)) {
+        return JSON.stringify(val);
+      }
+
+      return val;
+    };
+
+    Vue.prototype._render = function () {
+      const vm = this;
+      const {
+        render
+      } = vm.$options;
+      const vnode = render.call(vm);
+      console.log('vnode >>> ', vnode);
+      return vnode;
     };
   }
 
@@ -443,6 +546,8 @@
   }
 
   initMixin(Vue);
+  renderMixin(Vue);
+  lifecycleMixin(Vue);
 
   return Vue;
 

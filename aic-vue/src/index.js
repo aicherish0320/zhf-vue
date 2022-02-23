@@ -1,4 +1,6 @@
 import { initMixin } from './init'
+import { lifecycleMixin } from './lifecycle'
+import { renderMixin } from './render'
 
 /*
   Vue 通过原型的模式来实现扩展的
@@ -9,5 +11,7 @@ function Vue(options) {
 }
 
 initMixin(Vue)
+renderMixin(Vue)
+lifecycleMixin(Vue)
 
 export default Vue

@@ -52,3 +52,13 @@ Vue3 为了兼容 proxy 内部对数组用的就是 `defineProperty`
 4. 响应式原理，依赖收集
 5. 组件化开发 （贯穿了 vue 的流程）
 6. diff 算法
+
+> 1. 默认会调用 `Vue._init` 方法将用户的参数挂载到 `$options`选项中， `vm.$options`
+> 2. `Vue` 会根据用户的参数进行数据的初始化 props、computed、watch，会获取到对象作为数据,可以通过`vm._data`访问到用户的数据
+> 3. 对数据进行观测，对象（递归使用的 defineProperty）、数组（方法的重写）劫持到用户的操作，比如：用户修改了数据 -> 更新视图
+> 4. 将数据代理到 vm 对象上， `vm.xx => vm._data.xx`
+> 5. 判断用户是否传入了 el 属性，内部会调用 $mount 方法，此方法也可以用户自己调用
+> 6. 对模版的优先级处理 render/template/el,outerHTML
+> 7. 将模板编译成函数， 解析模板 -> ast 语法树，解析语法树生成 code -> render 函数
+> 8. 通过 render 方法，生成虚拟 dom + 真是数据 -> 真实的 dom
+> 9. 根据虚拟节点渲染成真实节点

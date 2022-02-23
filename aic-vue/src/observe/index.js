@@ -41,13 +41,13 @@ function defineReactive(obj, key, value) {
   observe(value)
   Object.defineProperty(obj, key, {
     get() {
-      console.log('get >>> ', key, value)
+      // console.log('get >>> ', key, value)
       // 闭包，value 会向上层查找
       return value
     },
     set(newVal) {
       if (value !== newVal) {
-        console.log('set >>> ', key, newVal)
+        // console.log('set >>> ', key, newVal)
         observe(newVal)
         value = newVal
       }

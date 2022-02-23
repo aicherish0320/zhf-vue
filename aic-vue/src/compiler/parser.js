@@ -44,7 +44,7 @@ export function parseHTML(html) {
   }
   function text(chars) {
     const parent = stack[stack.length - 1]
-    chars.replace(/\s/g, '')
+    chars = chars.replace(/\s/g, '')
     if (chars) {
       parent.children.push({
         type: 2,
