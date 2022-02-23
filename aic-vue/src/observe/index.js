@@ -1,5 +1,6 @@
 import { isArray, isObject } from '../utils'
 import { arrayMethods } from './array'
+import Dep from './dep'
 
 class Observer {
   constructor(value) {
@@ -39,8 +40,14 @@ class Observer {
 */
 function defineReactive(obj, key, value) {
   observe(value)
+  // 每个属性对应一个 dep
+  const dep = new Dep()
+
   Object.defineProperty(obj, key, {
     get() {
+      if (Dep.target) {
+        dep.depend()
+      }
       // console.log('get >>> ', key, value)
       // 闭包，value 会向上层查找
       return value

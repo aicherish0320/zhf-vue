@@ -9,7 +9,7 @@
   <body>
     <div id="app">
       <p>{{ message }}</p>
-      <li>{{ foo.bar }}</li>
+      <li>{{ foo }}</li>
     </div>
   </body>
   <script src="./vue.js"></script>
@@ -27,14 +27,19 @@
       data() {
         return {
           message: 'message',
-          foo: {
-            bar: 'bar'
-          }
+          foo: 'foo',
+          bar: 'bar'
         }
       }
     })
 
+    vm.foo = 'fooooo'
+    vm._update(vm._render())
+
     // 1. 初渲染
+    // 对象更新流程
+    // 一个属性对应一个 dep ，一个 dep 对应多个 watcher
+    // 一个 watcher 可以对应多个 dep
     // 2. 更细流程
   </script>
 </html>
