@@ -233,6 +233,8 @@
     const parentNode = el.parentNode;
     parentNode.insertBefore(elm, el.nextSibling);
     parentNode.removeChild(el); // 删除老节点 根据 vnode 创建新节点 替换掉老节点
+
+    return elm;
   } // 面试问：虚拟节点的实现 虚拟节点 -> 真实节点
 
   function createElm(vnode) {
