@@ -217,14 +217,86 @@
 
   function compileToFunction(template) {
     // 1. 将模板编程 ast 语法树
-    const ast = parseHTML(template);
-    console.log('ast >>> ', ast); // 2. 代码优化 编辑静态节点
+    const ast = parseHTML(template); // 2. 代码优化 编辑静态节点
+    // TODO
     // 3. 代码生成
 
     const code = generate(ast); // 模板引擎的实现原理都是 new Function + with
 
     const render = new Function(`with(this){return ${code}}`);
     return render;
+  }
+
+  let id$1 = 0;
+
+  class Dep {
+    // 把 watcher 放到 dep 中
+    constructor() {
+      this.subs = [];
+      this.id = id$1++;
+    }
+
+    depend() {
+      // 让 dep 记住这个 watcher
+      // this.subs.push(Dep.target)
+      Dep.target.addDep(this);
+    }
+
+    addSub(watcher) {
+      // 让 dep 记住 watcher
+      this.subs.push(watcher);
+    }
+
+    notify() {
+      this.subs.forEach(w => w.update());
+    }
+
+  } // 这里用了一个全局的变量
+
+
+  Dep.target = null;
+
+  let id = 0;
+
+  class Watcher {
+    // 要将 dep 放到 watcher 中
+    constructor(vm, fn, cb, options) {
+      this.vm = vm;
+      this.fn = fn;
+      this.cb = cb;
+      this.options = options;
+      this.id = id++;
+      this.depsId = new Set();
+      this.deps = []; // fn 就是页面渲染逻辑
+
+      this.getters = fn; // 表示一上来就做一次初始化
+
+      this.get();
+    }
+
+    get() {
+      // 利用了 js 单线程特性
+      Dep.target = this; // 页面渲染的逻辑
+
+      this.getters();
+      Dep.target = null;
+    }
+
+    addDep(dep) {
+      const dId = dep.id;
+
+      if (!this.depsId.has(dId)) {
+        this.depsId.add(dId);
+        this.deps.push(dep);
+        dep.addSub(this);
+      }
+    }
+
+    update() {
+      // 可以做异步更新处理
+      this.get();
+    }
+
   }
 
   function patch(el, vnode) {
@@ -267,7 +339,14 @@
   }
 
   function mountComponent(vm) {
-    vm._update(vm._render());
+    const updateComponent = () => {
+      vm._update(vm._render());
+    }; // 每个组件 都有一个 watcher，我们把这个 watcher 称之为渲染 watcher
+
+
+    new Watcher(vm, updateComponent, () => {
+      console.log('后续添加更新钩子函数 update');
+    }, true);
   }
   function lifecycleMixin(vue) {
     vue.prototype._update = function (vnode) {
@@ -366,11 +445,17 @@
 
 
   function defineReactive(obj, key, value) {
-    observe(value);
+    observe(value); // 每个属性对应一个 dep
+
+    const dep = new Dep();
     Object.defineProperty(obj, key, {
       get() {
-        // console.log('get >>> ', key, value)
+        if (Dep.target) {
+          dep.depend();
+        } // console.log('get >>> ', key, value)
         // 闭包，value 会向上层查找
+
+
         return value;
       },
 
@@ -378,7 +463,9 @@
         if (value !== newVal) {
           // console.log('set >>> ', key, newVal)
           observe(newVal);
-          value = newVal;
+          value = newVal; // 拿到当前的 dep 里面的 watcher 依次执行
+
+          dep.notify();
         }
       }
 
@@ -482,7 +569,7 @@
         opts.render = render;
       }
 
-      mountComponent(vm); // console.log('render >>> ', opts.render)
+      mountComponent(vm);
     };
   }
 
@@ -533,7 +620,6 @@
         render
       } = vm.$options;
       const vnode = render.call(vm);
-      console.log('vnode >>> ', vnode);
       return vnode;
     };
   }

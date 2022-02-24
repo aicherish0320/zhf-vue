@@ -10,7 +10,7 @@ export function mountComponent(vm) {
     vm,
     updateComponent,
     () => {
-      console.log('后续天街更新钩子函数 update')
+      console.log('后续添加更新钩子函数 update')
     },
     true
   )

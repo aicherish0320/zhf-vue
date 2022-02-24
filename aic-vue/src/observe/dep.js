@@ -8,7 +8,15 @@ class Dep {
   }
   depend() {
     // 让 dep 记住这个 watcher
-    this.subs.push(Dep.target)
+    // this.subs.push(Dep.target)
+    Dep.target.addDep(this)
+  }
+  addSub(watcher) {
+    // 让 dep 记住 watcher
+    this.subs.push(watcher)
+  }
+  notify() {
+    this.subs.forEach((w) => w.update())
   }
 }
 

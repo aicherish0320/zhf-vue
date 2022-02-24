@@ -57,6 +57,8 @@ function defineReactive(obj, key, value) {
         // console.log('set >>> ', key, newVal)
         observe(newVal)
         value = newVal
+        // 拿到当前的 dep 里面的 watcher 依次执行
+        dep.notify()
       }
     }
   })

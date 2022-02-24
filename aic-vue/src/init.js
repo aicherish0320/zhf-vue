@@ -44,6 +44,5 @@ export function initMixin(Vue) {
       opts.render = render
     }
     mountComponent(vm)
-    // console.log('render >>> ', opts.render)
   }
 }
