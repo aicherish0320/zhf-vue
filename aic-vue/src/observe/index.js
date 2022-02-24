@@ -45,6 +45,8 @@ function defineReactive(obj, key, value) {
 
   Object.defineProperty(obj, key, {
     get() {
+      console.log('key >>> ', key)
+      debugger
       if (Dep.target) {
         dep.depend()
       }
