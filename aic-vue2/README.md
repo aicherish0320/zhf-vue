@@ -12,3 +12,4 @@
    > 使用 `Object.defineProperty` 给数据添加`get/set`，进行数据劫持。
    > 普通对象使用`Object.defineProperty`进行数据劫持
    > 数组通过重写数组方法进行响应式处理
+3. 模板编译

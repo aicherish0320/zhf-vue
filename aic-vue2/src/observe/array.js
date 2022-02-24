@@ -6,7 +6,6 @@ const methods = ['push', 'pop', 'shift', 'unshift', 'sort', 'splice', 'reverse']
 
 methods.forEach((m) => {
   arrayProto[m] = function (...args) {
-    console.log('劫持数组', m)
     oldArrayPrototype[m].call(this, ...args)
 
     let inserted
