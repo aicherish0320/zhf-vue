@@ -22,7 +22,7 @@ function gen(el) {
     if (!defaultTagRE.test(text)) {
       return `_v('${text}')`
     }
-
+    // 如果正则 + g，配合 exec 就会有一个问题 lastIndex
     let lastIndex = (defaultTagRE.lastIndex = 0)
     let match,
       tokens = []
@@ -41,4 +41,18 @@ function gen(el) {
     return `_v(${tokens.join('+')})`
   }
 }
-function genProps(attrs) {}
+function genProps(attrs) {
+  let str = ''
+  for (let i = 0; i < attrs.length; i++) {
+    const attr = attrs[i]
+    if (attr.name === 'style') {
+      const styles = {}
+      attr.value.replace(/([^;:]+):([^;:]+)/g, function () {
+        styles[arguments[1].trim()] = arguments[2].trim()
+      })
+      attr.value = styles
+    }
+    str += `${attr.name}:${JSON.stringify(attr.value)},`
+  }
+  return `{${str.slice(0, -1)}}`
+}
