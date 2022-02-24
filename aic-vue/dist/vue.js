@@ -450,9 +450,6 @@
     const dep = new Dep();
     Object.defineProperty(obj, key, {
       get() {
-        console.log('key >>> ', key);
-        debugger;
-
         if (Dep.target) {
           dep.depend();
         } // console.log('get >>> ', key, value)
