@@ -29,6 +29,8 @@ export function initMixin(Vue) {
       }
 
       options.render = compileToFunction(template)
+
+      console.log(options.render)
     }
   }
 }
