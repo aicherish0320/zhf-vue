@@ -33,7 +33,10 @@
       }
     })
 
-    // vm.message = 'msg'
+    vm.message = 'msgggg1'
+    vm.$nextTick(() => {
+      console.log(vm.$el.innerHTML)
+    })
     // vm._update(vm._render())
 
     // 1. 初渲染

@@ -256,6 +256,59 @@
 
   Dep.target = null;
 
+  function isFunction(data) {
+    return typeof data === 'function';
+  }
+  function isObject(val) {
+    return typeof val === 'object' && val !== null;
+  }
+  function isArray(val) {
+    return Array.isArray(val);
+  }
+  let callbacks = [];
+  let waiting = false;
+
+  function flushCallbacks() {
+    callbacks.forEach(fn => fn());
+    callbacks = [];
+    waiting = false;
+  }
+
+  function nextTick(fn) {
+    // Vue3里面的nextTick 就是 promise ,Vue2里面做了一些兼容处理
+    callbacks.push(fn);
+
+    if (!waiting) {
+      return Promise.resolve().then(flushCallbacks);
+    }
+  }
+
+  let queue = []; // 用来存放已有的 watcher 的 id
+
+  let has = {};
+  let pending = false;
+
+  function flushSchedulerQueue() {
+    queue.forEach(watcher => watcher.run());
+    queue = [];
+    has = {};
+    pending = false;
+  }
+
+  function queueWatcher(watcher) {
+    const id = watcher.id;
+
+    if (!has[id]) {
+      has[id] = true;
+      queue.push(watcher);
+
+      if (!pending) {
+        nextTick(flushSchedulerQueue);
+        pending = true;
+      }
+    }
+  }
+
   let id = 0;
 
   class Watcher {
@@ -293,7 +346,12 @@
     }
 
     update() {
+      // 每次更新数据都会同步调用这个 update 方法，我可以将更新的逻辑缓存起来，等会同步更新数据的逻辑执行完毕后，依次调用。（去重逻辑）
       // 可以做异步更新处理
+      queueWatcher(this); // this.get()
+    }
+
+    run() {
       this.get();
     }
 
@@ -354,16 +412,6 @@
       const vm = this;
       vm.$el = patch(vm.$el, vnode);
     };
-  }
-
-  function isFunction(data) {
-    return typeof data === 'function';
-  }
-  function isObject(val) {
-    return typeof val === 'object' && val !== null;
-  }
-  function isArray(val) {
-    return Array.isArray(val);
   }
 
   // 获取数组的老的原型方法
@@ -571,6 +619,8 @@
 
       mountComponent(vm);
     };
+
+    Vue.prototype.$nextTick = nextTick;
   }
 
   // 返回虚拟节点

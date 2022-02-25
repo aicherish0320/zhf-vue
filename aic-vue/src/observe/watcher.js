@@ -1,4 +1,5 @@
 import Dep from './dep'
+import { queueWatcher } from './scheduler'
 let id = 0
 class Watcher {
   // 要将 dep 放到 watcher 中
@@ -35,7 +36,12 @@ class Watcher {
     }
   }
   update() {
+    // 每次更新数据都会同步调用这个 update 方法，我可以将更新的逻辑缓存起来，等会同步更新数据的逻辑执行完毕后，依次调用。（去重逻辑）
     // 可以做异步更新处理
+    queueWatcher(this)
+    // this.get()
+  }
+  run() {
     this.get()
   }
 }
