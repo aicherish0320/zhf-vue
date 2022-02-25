@@ -9,8 +9,6 @@
   <body>
     <div id="app" class="cls">
       <p style="color: red; background: orange">{{ foo }}</p>
-      <span>{{ bar }}</span>
-      <li>aa {{ bar.baz }} bb</li>
     </div>
   </body>
   <script src="./vue.js"></script>
@@ -20,10 +18,7 @@
       data() {
         return {
           foo: 'foo',
-          bar: {
-            baz: 'baz'
-          },
-          arr: [{ a: 1 }]
+          bar: 'bar'
         }
       }
     })

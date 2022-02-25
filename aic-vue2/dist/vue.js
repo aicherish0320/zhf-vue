@@ -207,6 +207,65 @@
     return render;
   }
 
+  let id$1 = 0;
+  class Dep {
+    constructor() {
+      this.subs = [];
+      this.id = id$1++;
+    }
+
+    depend() {
+      Dep.target.addDep(this);
+    }
+
+    addSub(watcher) {
+      this.subs.push(watcher);
+    }
+
+    notify() {
+      this.subs.forEach(w => w.update());
+    }
+
+  }
+
+  let id = 0;
+  class Watcher {
+    constructor(vm, fn, cb, options) {
+      this.vm = vm;
+      this.fn = fn;
+      this.cb = cb;
+      this.options = options;
+      this.id = id++;
+      this.deps = [];
+      this.depIds = new Set();
+      this.getters = fn;
+      this.get();
+    }
+
+    get() {
+      Dep.target = this;
+      this.getters();
+      Dep.target = null;
+    }
+
+    addDep(dep) {
+      const {
+        id
+      } = dep;
+
+      if (!this.depIds.has(id)) {
+        this.deps.push(dep);
+        this.depIds.add(id);
+        dep.addSub(this);
+      }
+    }
+
+    update() {
+      this.get();
+    }
+
+  }
+
   function patch(el, vnode) {
     const elm = createElm(vnode);
     const parentNode = el.parentNode;
@@ -241,7 +300,7 @@
       vm._update(vm._render());
     };
 
-    updateComponent();
+    new Watcher(vm, updateComponent, () => {}, true);
   }
   function lifecycleMixin(vue) {
     vue.prototype._update = function (vnode) {
@@ -309,14 +368,20 @@
 
   function defineReactive(obj, key, value) {
     observe(value);
+    const dep = new Dep();
     Object.defineProperty(obj, key, {
       get() {
+        if (Dep.target) {
+          dep.depend();
+        }
+
         return value;
       },
 
       set(newVal) {
         if (value !== newVal) {
           value = newVal;
+          dep.notify();
         }
       }
 
