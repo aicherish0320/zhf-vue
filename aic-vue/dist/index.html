@@ -9,7 +9,7 @@
   <body>
     <div id="app">
       <p>{{ message }}</p>
-      <li>{{ foo }}</li>
+      <li>{{ arr }}</li>
     </div>
   </body>
   <script src="./vue.js"></script>
@@ -28,15 +28,18 @@
         return {
           message: 'message',
           foo: 'foo',
-          bar: 'bar'
+          bar: 'bar',
+          arr: []
         }
       }
     })
 
-    vm.message = 'msgggg1'
-    vm.$nextTick(() => {
-      console.log(vm.$el.innerHTML)
-    })
+    vm.arr.push(123)
+    // vm.arr[0].a = 111
+    // vm.message = 'msgggg1'
+    // vm.$nextTick(() => {
+    //   console.log(vm.$el.innerHTML)
+    // })
     // vm._update(vm._render())
 
     // 1. 初渲染

@@ -71,3 +71,7 @@ Vue3 为了兼容 proxy 内部对数组用的就是 `defineProperty`
 2. 当渲染视图的时候，会取 data 中的数据，会走每个属性的 get 方法，就让这个属性的 dep 记录 watcher
 3. 同时让 watcher 也记住 dep，dep 和 watcher 是多对多的关系，因为一个属性可能对应多个视图，一个视图对应多个数据
 4. 如果数据发生变化，会通知对应属性的 dep，依次通知存放的 watcher 去更新
+
+## 数组的依赖收集
+
+>

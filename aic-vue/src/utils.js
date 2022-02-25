@@ -23,7 +23,7 @@ export function nextTick(fn) {
   // Vue3里面的nextTick 就是 promise ,Vue2里面做了一些兼容处理
   callbacks.push(fn)
   if (!waiting) {
-    return Promise.resolve().then(flushCallbacks)
+    Promise.resolve().then(flushCallbacks)
     waiting = true
   }
 }
