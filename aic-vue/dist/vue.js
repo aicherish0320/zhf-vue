@@ -4,6 +4,95 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Vue = factory());
 })(this, (function () { 'use strict';
 
+  function isFunction(data) {
+    return typeof data === 'function';
+  }
+  function isObject(val) {
+    return typeof val === 'object' && val !== null;
+  }
+  function isArray(val) {
+    return Array.isArray(val);
+  }
+  let callbacks = [];
+  let waiting = false;
+
+  function flushCallbacks() {
+    callbacks.forEach(fn => fn());
+    callbacks = [];
+    waiting = false;
+  }
+
+  function nextTick(fn) {
+    // Vue3里面的nextTick 就是 promise ,Vue2里面做了一些兼容处理
+    callbacks.push(fn);
+
+    if (!waiting) {
+      Promise.resolve().then(flushCallbacks);
+      waiting = true;
+    }
+  } // {} { beforeCreate: fn } => { beforeCreate: [fn] }
+  // { beforeCreate: [fn] }  => { beforeCreate: [fn, fn] }
+  // 存放所有策略
+
+  const strats = {};
+  const lifecycle = ['beforeCreate', 'created', 'beforeMount', 'mounted'];
+  lifecycle.forEach(hook => {
+    strats[hook] = function (parentVal, childVal) {
+      if (childVal) {
+        if (parentVal) {
+          // 父子都有值 用父和子拼在一起 父有值一定是数组
+          return parentVal.concat(childVal);
+        } else {
+          return [childVal];
+        }
+      } else {
+        return parentVal;
+      }
+    };
+  });
+  function mergeOptions(parentVal, childVal) {
+    let options = {};
+
+    for (const key in parentVal) {
+      mergeField(key);
+    }
+
+    for (const key in childVal) {
+      if (!parentVal.hasOwnProperty(key)) {
+        mergeField(key);
+      }
+    }
+
+    function mergeField(key) {
+      // 策略模式
+      const strat = strats[key];
+
+      if (strat) {
+        options[key] = strat(parentVal[key], childVal[key]);
+      } else {
+        options[key] = childVal[key] || parentVal[key];
+      }
+    }
+
+    return options;
+  }
+
+  function initGlobalAPI(Vue) {
+    // 全局属性，在每个组件初始化的时候 将这些属性放到每个组件上
+    Vue.options = {};
+
+    Vue.mixin = function (options) {
+      this.options = mergeOptions(this.options, options);
+      return this;
+    };
+
+    Vue.component = function (options) {};
+
+    Vue.filter = function (options) {};
+
+    Vue.directive = function (options) {};
+  }
+
   function genProps(attrs) {
     let str = ''; // { key: value, key: value }
 
@@ -256,34 +345,6 @@
 
   Dep.target = null;
 
-  function isFunction(data) {
-    return typeof data === 'function';
-  }
-  function isObject(val) {
-    return typeof val === 'object' && val !== null;
-  }
-  function isArray(val) {
-    return Array.isArray(val);
-  }
-  let callbacks = [];
-  let waiting = false;
-
-  function flushCallbacks() {
-    callbacks.forEach(fn => fn());
-    callbacks = [];
-    waiting = false;
-  }
-
-  function nextTick(fn) {
-    // Vue3里面的nextTick 就是 promise ,Vue2里面做了一些兼容处理
-    callbacks.push(fn);
-
-    if (!waiting) {
-      Promise.resolve().then(flushCallbacks);
-      waiting = true;
-    }
-  }
-
   let queue = []; // 用来存放已有的 watcher 的 id
 
   let has = {};
@@ -400,12 +461,15 @@
   function mountComponent(vm) {
     const updateComponent = () => {
       vm._update(vm._render());
-    }; // 每个组件 都有一个 watcher，我们把这个 watcher 称之为渲染 watcher
+    };
 
+    callHook(vm, 'beforeCreate'); // 每个组件 都有一个 watcher，我们把这个 watcher 称之为渲染 watcher
 
     new Watcher(vm, updateComponent, () => {
       console.log('后续添加更新钩子函数 update');
+      callHook(vm, 'created');
     }, true);
+    callHook(vm, 'mounted');
   }
   function lifecycleMixin(vue) {
     vue.prototype._update = function (vnode) {
@@ -413,6 +477,16 @@
       const vm = this;
       vm.$el = patch(vm.$el, vnode);
     };
+  }
+  function callHook(vm, hook) {
+    const handlers = vm.$options[hook];
+
+    if (handlers) {
+      handlers.forEach(fn => {
+        // 生命周期的 this 永远指向实例
+        fn.call(vm);
+      });
+    }
   }
 
   // 获取数组的老的原型方法
@@ -615,7 +689,7 @@
       const vm = this; // 把用户的选项放到 vm 上，这样在其他方法中都可以获取到 options
       // 为了后续扩展的方法，都可以获取 $options 选项
 
-      vm.$options = options;
+      vm.$options = mergeOptions(vm.constructor.options, options);
       initState(vm);
 
       if (vm.$options.el) {
@@ -720,6 +794,7 @@
   initMixin(Vue);
   renderMixin(Vue);
   lifecycleMixin(Vue);
+  initGlobalAPI(Vue);
 
   return Vue;
 

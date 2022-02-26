@@ -8,44 +8,37 @@
   </head>
   <body>
     <div id="app">
-      <p>{{ message }}</p>
-      <li>{{ arr }}</li>
+      <p>{{ foo }}</p>
     </div>
   </body>
   <script src="./vue.js"></script>
   <script>
-    /**
-      Vue 默认支持响应式数据变化
-      1. 响应式: 数据变化->页面变化
-      2. 双向绑定: 页面变化( 表单输入 input checkbox... )->数据变化 数据变化->页面变化
-
-      Vue 并不是 MVVM , Vue 默认只是做视图
-      渐进式 -> 组件化 + vue-router + vuex + vue-cli
-     */
-    const vm = new Vue({
-      el: '#app',
-      data() {
-        return {
-          message: 'message',
-          foo: 'foo',
-          bar: 'bar',
-          arr: []
-        }
+    Vue.mixin({
+      beforeCreate() {
+        console.log('全局的1')
+      }
+    })
+    Vue.mixin({
+      beforeCreate() {
+        console.log('全局的2')
       }
     })
 
-    vm.arr.push(123)
-    // vm.arr[0].a = 111
-    // vm.message = 'msgggg1'
-    // vm.$nextTick(() => {
-    //   console.log(vm.$el.innerHTML)
-    // })
-    // vm._update(vm._render())
-
-    // 1. 初渲染
-    // 对象更新流程
-    // 一个属性对应一个 dep ，一个 dep 对应多个 watcher
-    // 一个 watcher 可以对应多个 dep
-    // 2. 更细流程
+    const vm = new Vue({
+      el: '#app',
+      beforeCreate: [
+        function () {
+          console.log('局部的1')
+        },
+        function () {
+          console.log('局部的2')
+        }
+      ],
+      data() {
+        return {
+          foo: 'foo'
+        }
+      }
+    })
   </script>
 </html>
