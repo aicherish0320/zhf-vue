@@ -563,10 +563,25 @@
     let newStartIndex = 0;
     let newStartVNode = newChildren[0];
     let newEndIndex = newChildren.length - 1;
-    let newEndVNode = newChildren[newEndIndex]; // diff 算法的复杂度 o(n)
+    let newEndVNode = newChildren[newEndIndex];
+
+    function makeKeyByIndex(children) {
+      const map = {};
+      children.forEach((item, index) => {
+        map[item.key] = index;
+      });
+      return map;
+    }
+
+    const mapping = makeKeyByIndex(oldChildren); // diff 算法的复杂度 o(n)
 
     while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
-      if (isSameVNode(oldStartVNode, newStartVNode)) {
+      // 在指针移动的时候 可能元素已经被移动走了那就跳过这一项
+      if (!oldStartVNode) {
+        oldStartVNode = oldChildren[++oldStartIndex];
+      } else if (!oldEndVNode) {
+        oldEndVNode = oldChildren[--oldEndIndex];
+      } else if (isSameVNode(oldStartVNode, newStartVNode)) {
         // 会递归比较子节点 同时比对这两个的差异
         patch(oldStartVNode, newStartVNode);
         oldStartVNode = oldChildren[++oldStartIndex];
@@ -585,7 +600,24 @@
         el.insertBefore(oldEndVNode.el, oldStartVNode.el);
         oldEndVNode = oldChildren[--oldEndIndex];
         newStartVNode = newChildren[++newStartIndex];
-      } else ;
+      } else {
+        // 之前的逻辑都是考虑，用户一些特殊情况，但是有非特殊的 乱序排
+        let moveIndex = mapping[newStartVNode.key];
+
+        if (!moveIndex) {
+          // 没有直接将节点插入到开头的前面
+          el.insertBefore(createElm(newStartVNode), oldStartVNode.el);
+        } else {
+          // 有的话就复用
+          const moveVNode = oldChildren[moveIndex];
+          el.insertBefore(moveVNode.el, oldStartVNode.el);
+          patch(moveVNode, newStartVNode); // 将移动的节点标记为空
+
+          oldChildren[moveIndex] = null;
+        }
+
+        newStartVNode = newChildren[++newStartIndex];
+      }
     }
 
     if (newStartIndex <= newEndIndex) {
@@ -603,8 +635,9 @@
     if (oldStartIndex <= oldEndIndex) {
       for (let i = oldStartIndex; i <= oldEndIndex; i++) {
         // 老的多余的 需要清理掉 直接删除即可
-        const child = oldChildren[i];
-        el.removeChild(child.el);
+        const child = oldChildren[i]; // 因为 child 可能是 null
+
+        child && el.removeChild(child.el);
       }
     }
   }
@@ -939,7 +972,6 @@
 
   });
   const render1 = compileToFunction(`<div >
-  <li key="E">E</li>
   <li key="A">A</li>
   <li key="B">B</li>
   <li key="C">C</li>
@@ -958,10 +990,11 @@
 
   });
   const render2 = compileToFunction(`<div >
-  <li key="D" style="color: cyan">D</li>
-  <li key="C" style="color: orange">C</li>
-  <li key="B" style="color: green">B</li>
-  <li key="A" style="color: red">A</li>
+  <li key="F" style="color: red">F</li>
+  <li key="B" style="color: blue">B</li>
+  <li key="A" style="color: cyan">A</li>
+  <li key="E" style="color: orange">E</li>
+  <li key="P" style="color: green">P</li>
 </div>`);
   const newVNode = render2.call(vm2);
   setTimeout(() => {

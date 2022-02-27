@@ -27,7 +27,6 @@ const vm1 = new Vue({
   }
 })
 const render1 = compileToFunction(`<div >
-  <li key="E">E</li>
   <li key="A">A</li>
   <li key="B">B</li>
   <li key="C">C</li>
@@ -45,10 +44,11 @@ const vm2 = new Vue({
   }
 })
 const render2 = compileToFunction(`<div >
-  <li key="D" style="color: cyan">D</li>
-  <li key="C" style="color: orange">C</li>
-  <li key="B" style="color: green">B</li>
-  <li key="A" style="color: red">A</li>
+  <li key="F" style="color: red">F</li>
+  <li key="B" style="color: blue">B</li>
+  <li key="A" style="color: cyan">A</li>
+  <li key="E" style="color: orange">E</li>
+  <li key="P" style="color: green">P</li>
 </div>`)
 const newVNode = render2.call(vm2)
 setTimeout(() => {
