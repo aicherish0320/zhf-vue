@@ -43,7 +43,11 @@
           // 父子都有值 用父和子拼在一起 父有值一定是数组
           return parentVal.concat(childVal);
         } else {
-          return [childVal];
+          if (isArray(childVal)) {
+            return childVal;
+          } else {
+            return [childVal];
+          }
         }
       } else {
         return parentVal;
