@@ -4,99 +4,6 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Vue = factory());
 })(this, (function () { 'use strict';
 
-  function isFunction(data) {
-    return typeof data === 'function';
-  }
-  function isObject(val) {
-    return typeof val === 'object' && val !== null;
-  }
-  function isArray(val) {
-    return Array.isArray(val);
-  }
-  let callbacks = [];
-  let waiting = false;
-
-  function flushCallbacks() {
-    callbacks.forEach(fn => fn());
-    callbacks = [];
-    waiting = false;
-  }
-
-  function nextTick(fn) {
-    // Vue3里面的nextTick 就是 promise ,Vue2里面做了一些兼容处理
-    callbacks.push(fn);
-
-    if (!waiting) {
-      Promise.resolve().then(flushCallbacks);
-      waiting = true;
-    }
-  } // {} { beforeCreate: fn } => { beforeCreate: [fn] }
-  // { beforeCreate: [fn] }  => { beforeCreate: [fn, fn] }
-  // 存放所有策略
-
-  const strats = {};
-  const lifecycle = ['beforeCreate', 'created', 'beforeMount', 'mounted'];
-  lifecycle.forEach(hook => {
-    strats[hook] = function (parentVal, childVal) {
-      if (childVal) {
-        if (parentVal) {
-          // 父子都有值 用父和子拼在一起 父有值一定是数组
-          return parentVal.concat(childVal);
-        } else {
-          if (isArray(childVal)) {
-            return childVal;
-          } else {
-            return [childVal];
-          }
-        }
-      } else {
-        return parentVal;
-      }
-    };
-  });
-  function mergeOptions(parentVal, childVal) {
-    let options = {};
-
-    for (const key in parentVal) {
-      mergeField(key);
-    }
-
-    for (const key in childVal) {
-      if (!parentVal.hasOwnProperty(key)) {
-        mergeField(key);
-      }
-    }
-
-    function mergeField(key) {
-      // 策略模式
-      const strat = strats[key];
-
-      if (strat) {
-        options[key] = strat(parentVal[key], childVal[key]);
-      } else {
-        options[key] = childVal[key] || parentVal[key];
-      }
-    }
-
-    return options;
-  }
-
-  function initGlobalAPI(Vue) {
-    // 全局属性，在每个组件初始化的时候 将这些属性放到每个组件上
-    Vue.options = {};
-
-    Vue.mixin = function (options) {
-      this.options = mergeOptions(this.options, options);
-      return this;
-    };
-
-    Vue.component = function (options) {};
-
-    Vue.filter = function (options) {};
-
-    Vue.directive = function (options) {};
-  }
-
   function genProps(attrs) {
     let str = ''; // { key: value, key: value }
 
@@ -320,6 +227,99 @@
     return render;
   }
 
+  function isFunction(data) {
+    return typeof data === 'function';
+  }
+  function isObject(val) {
+    return typeof val === 'object' && val !== null;
+  }
+  function isArray(val) {
+    return Array.isArray(val);
+  }
+  let callbacks = [];
+  let waiting = false;
+
+  function flushCallbacks() {
+    callbacks.forEach(fn => fn());
+    callbacks = [];
+    waiting = false;
+  }
+
+  function nextTick(fn) {
+    // Vue3里面的nextTick 就是 promise ,Vue2里面做了一些兼容处理
+    callbacks.push(fn);
+
+    if (!waiting) {
+      Promise.resolve().then(flushCallbacks);
+      waiting = true;
+    }
+  } // {} { beforeCreate: fn } => { beforeCreate: [fn] }
+  // { beforeCreate: [fn] }  => { beforeCreate: [fn, fn] }
+  // 存放所有策略
+
+  const strats = {};
+  const lifecycle = ['beforeCreate', 'created', 'beforeMount', 'mounted'];
+  lifecycle.forEach(hook => {
+    strats[hook] = function (parentVal, childVal) {
+      if (childVal) {
+        if (parentVal) {
+          // 父子都有值 用父和子拼在一起 父有值一定是数组
+          return parentVal.concat(childVal);
+        } else {
+          if (isArray(childVal)) {
+            return childVal;
+          } else {
+            return [childVal];
+          }
+        }
+      } else {
+        return parentVal;
+      }
+    };
+  });
+  function mergeOptions(parentVal, childVal) {
+    let options = {};
+
+    for (const key in parentVal) {
+      mergeField(key);
+    }
+
+    for (const key in childVal) {
+      if (!parentVal.hasOwnProperty(key)) {
+        mergeField(key);
+      }
+    }
+
+    function mergeField(key) {
+      // 策略模式
+      const strat = strats[key];
+
+      if (strat) {
+        options[key] = strat(parentVal[key], childVal[key]);
+      } else {
+        options[key] = childVal[key] || parentVal[key];
+      }
+    }
+
+    return options;
+  }
+
+  function initGlobalAPI(Vue) {
+    // 全局属性，在每个组件初始化的时候 将这些属性放到每个组件上
+    Vue.options = {};
+
+    Vue.mixin = function (options) {
+      this.options = mergeOptions(this.options, options);
+      return this;
+    };
+
+    Vue.component = function (options) {};
+
+    Vue.filter = function (options) {};
+
+    Vue.directive = function (options) {};
+  }
+
   let id$1 = 0;
 
   class Dep {
@@ -423,42 +423,118 @@
 
   }
 
-  function patch(el, vnode) {
-    // 根据虚拟节点 渲染成真实节点
-    const elm = createElm(vnode);
-    const parentNode = el.parentNode;
-    parentNode.insertBefore(elm, el.nextSibling);
-    parentNode.removeChild(el); // 删除老节点 根据 vnode 创建新节点 替换掉老节点
+  // 返回虚拟节点
+  function createElement(vm, tag, data = {}, ...children) {
+    return vnode(vm, tag, data, children, data.key, undefined);
+  }
+  function createText(vm, text) {
+    return vnode(vm, undefined, undefined, undefined, undefined, text);
+  } // 看两个节点是不是相同节点 判断 tag 和 Key
+  // Vue2 性能问题 递归比对
 
-    return elm;
+  function isSameVNode(newVNode, oldVNode) {
+    return newVNode.tag === oldVNode.tag && newVNode.key === oldVNode.key;
+  }
+
+  function vnode(vm, tag, data, children, key, text) {
+    return {
+      vm,
+      tag,
+      data,
+      children,
+      key,
+      text
+    };
+  }
+
+  function patch(oldVNode, vNode) {
+    const isRealElement = oldVNode.nodeType;
+
+    if (isRealElement) {
+      // 根据虚拟节点 渲染成真实节点
+      const elm = createElm(vNode);
+      const parentNode = oldVNode.parentNode;
+      parentNode.insertBefore(elm, oldVNode.nextSibling);
+      parentNode.removeChild(oldVNode); // 删除老节点 根据 vNode 创建新节点 替换掉老节点
+
+      return elm;
+    } else {
+      // diff: 同层比对，如果不一样，儿子就不用比对了，根据当前节点，创建儿子，全部替换
+      // 如果新旧节点 不是同一个 删除老的换成新的
+      if (!isSameVNode(oldVNode, vNode)) {
+        return oldVNode.el.parentNode.replaceChild(createElm(vNode), oldVNode.el);
+      } // 复用节点
+
+
+      const el = vNode.el = oldVNode.el;
+
+      if (!oldVNode.tag) {
+        // 文本 直接更新即可 一个是文本 另一个也是文本
+        if (oldVNode.text !== vNode.text) {
+          return el.textContent = vNode.text;
+        }
+      } // 元素
+
+
+      updateProperties(vNode, oldVNode.data); // 相同节点，复用节点，再更新不一样的地方
+    }
   } // 面试问：虚拟节点的实现 虚拟节点 -> 真实节点
 
-  function createElm(vnode) {
+  function createElm(vNode) {
     const {
       tag,
       data,
       children,
       text,
       vm
-    } = vnode; // 让虚拟节点和真实节点做一个映射，后续某个虚拟节点更新了 我们可以跟踪到真实节点，并且更新真实节点
+    } = vNode; // 让虚拟节点和真实节点做一个映射，后续某个虚拟节点更新了 我们可以跟踪到真实节点，并且更新真实节点
 
     if (typeof tag === 'string') {
-      vnode.el = document.createElement(tag);
-      updateProperties(vnode.el, data);
+      vNode.el = document.createElement(tag);
+      updateProperties(vNode);
       children.forEach(child => {
-        vnode.el.appendChild(createElm(child));
+        vNode.el.appendChild(createElm(child));
       });
     } else {
       // 文本
-      vnode.el = document.createTextNode(text);
+      vNode.el = document.createTextNode(text);
     }
 
-    return vnode.el;
+    return vNode.el;
   }
 
-  function updateProperties(el, props = {}) {
-    for (let key in props) {
-      el.setAttribute(key, props[key]);
+  function updateProperties(vNode, oldProps = {}) {
+    // 这里的逻辑可能是初次渲染，初次渲染 直接用 oldVNode给VNode的el赋值即可
+    // 更新逻辑 拿到老的 props 和 VNode里面的 data 进行比对
+    const el = vNode.el;
+    const newProps = vNode.data || {};
+    const newStyle = newProps.style || {};
+    const oldStyle = oldProps.style || {};
+
+    for (const key in oldStyle) {
+      // 老的样式有，新的没有，就把页面上的样式删除掉
+      if (!newStyle[key]) {
+        el.style[key] = '';
+      }
+    } // 新旧比对，两个对象如何对比差异
+
+
+    for (const key in newProps) {
+      // 直接用新的覆盖老的
+      if (key === 'style') {
+        for (const key in newStyle) {
+          // { style: { color: red } }
+          el.style[key] = newStyle[key];
+        }
+      } else {
+        el.setAttribute(key, newProps[key]);
+      }
+    }
+
+    for (const key in oldProps) {
+      if (!newProps[key]) {
+        el.removeAttribute(key);
+      }
     }
   }
 
@@ -478,7 +554,9 @@
   function lifecycleMixin(vue) {
     vue.prototype._update = function (vnode) {
       // 采用的是 先序深度遍历 创建节点 （遇到节点就创造节点，递归创建）
-      const vm = this;
+      const vm = this; // 第一次渲染 是根据虚拟节点 生成真实节点 替换掉原来的节点
+      // 第二次 生成一个新的虚拟节点和老的虚拟节点进行对比
+
       vm.$el = patch(vm.$el, vnode);
     };
   }
@@ -735,25 +813,6 @@
     Vue.prototype.$nextTick = nextTick;
   }
 
-  // 返回虚拟节点
-  function createElement(vm, tag, data = {}, ...children) {
-    return vnode(vm, tag, data, children, data.key, undefined);
-  }
-  function createText(vm, text) {
-    return vnode(vm, undefined, undefined, undefined, undefined, text);
-  }
-
-  function vnode(vm, tag, data, children, key, text) {
-    return {
-      vm,
-      tag,
-      data,
-      children,
-      key,
-      text
-    };
-  }
-
   function renderMixin(Vue) {
     // 创建元素
     Vue.prototype._c = function () {
@@ -798,7 +857,34 @@
   initMixin(Vue);
   renderMixin(Vue);
   lifecycleMixin(Vue);
-  initGlobalAPI(Vue);
+  initGlobalAPI(Vue); // 先生成一个虚拟节点
+
+  const vm1 = new Vue({
+    data() {
+      return {
+        name: 'aicherish'
+      };
+    }
+
+  });
+  const render1 = compileToFunction(`<div style="color: red">{{ name }}</div>`);
+  const oldVNode = render1.call(vm1);
+  const el1 = createElm(oldVNode);
+  document.body.appendChild(el1); // 新的虚拟节点
+
+  const vm2 = new Vue({
+    data() {
+      return {
+        name: 'aic'
+      };
+    }
+
+  });
+  const render2 = compileToFunction(`<div style="color: orange">{{ name }}</div>`);
+  const newVNode = render2.call(vm2);
+  setTimeout(() => {
+    patch(oldVNode, newVNode);
+  }, 2000);
 
   return Vue;
 

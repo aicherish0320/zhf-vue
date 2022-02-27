@@ -6,39 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
   </head>
-  <body>
-    <div id="app">
-      <p>{{ foo }}</p>
-    </div>
-  </body>
+  <body></body>
   <script src="./vue.js"></script>
-  <script>
-    Vue.mixin({
-      beforeCreate() {
-        console.log('全局的1')
-      }
-    })
-    Vue.mixin({
-      beforeCreate() {
-        console.log('全局的2')
-      }
-    })
-
-    const vm = new Vue({
-      el: '#app',
-      beforeCreate: [
-        function () {
-          console.log('局部的1')
-        },
-        function () {
-          console.log('局部的2')
-        }
-      ],
-      data() {
-        return {
-          foo: 'foo'
-        }
-      }
-    })
-  </script>
+  <script></script>
 </html>
