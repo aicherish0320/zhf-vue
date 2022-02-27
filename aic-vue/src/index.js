@@ -26,7 +26,13 @@ const vm1 = new Vue({
     }
   }
 })
-const render1 = compileToFunction(`<div style="color: red">{{ name }}</div>`)
+const render1 = compileToFunction(`<div >
+  <li key="E">E</li>
+  <li key="A">A</li>
+  <li key="B">B</li>
+  <li key="C">C</li>
+  <li key="D">D</li>
+</div>`)
 const oldVNode = render1.call(vm1)
 const el1 = createElm(oldVNode)
 document.body.appendChild(el1)
@@ -38,7 +44,12 @@ const vm2 = new Vue({
     }
   }
 })
-const render2 = compileToFunction(`<div style="color: orange">{{ name }}</div>`)
+const render2 = compileToFunction(`<div >
+  <li key="D" style="color: cyan">D</li>
+  <li key="C" style="color: orange">C</li>
+  <li key="B" style="color: green">B</li>
+  <li key="A" style="color: red">A</li>
+</div>`)
 const newVNode = render2.call(vm2)
 setTimeout(() => {
   patch(oldVNode, newVNode)

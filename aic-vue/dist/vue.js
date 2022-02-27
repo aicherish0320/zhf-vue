@@ -477,6 +477,20 @@
 
 
       updateProperties(vNode, oldVNode.data); // 相同节点，复用节点，再更新不一样的地方
+      // 比较儿子节点
+
+      const oldChildren = oldVNode.children || [];
+      const newChildren = vNode.children || []; // 1. 老的有儿子 新的没儿子
+
+      if (oldChildren.length > 0 && newChildren.length === 0) {
+        el.innerHTML = '';
+      } else if (newChildren.length > 0 && oldChildren.length === 0) {
+        // 新的有儿子 老的没儿子 直接将新的插入即可
+        newChildren.forEach(child => el.appendChild(createElm(child)));
+      } else {
+        // 新老都有儿子
+        updateChildren(el, oldChildren, newChildren);
+      }
     }
   } // 面试问：虚拟节点的实现 虚拟节点 -> 真实节点
 
@@ -534,6 +548,63 @@
     for (const key in oldProps) {
       if (!newProps[key]) {
         el.removeAttribute(key);
+      }
+    }
+  } // Vue2 中如何做的diff
+
+
+  function updateChildren(el, oldChildren, newChildren) {
+    // Vue内部做了优化 （能尽量提升性能，如果实在不行，再暴力比对）
+    // 1. 在列表中新增和删除的情况
+    let oldStartIndex = 0;
+    let oldStartVNode = oldChildren[0];
+    let oldEndIndex = oldChildren.length - 1;
+    let oldEndVNode = oldChildren[oldEndIndex];
+    let newStartIndex = 0;
+    let newStartVNode = newChildren[0];
+    let newEndIndex = newChildren.length - 1;
+    let newEndVNode = newChildren[newEndIndex]; // diff 算法的复杂度 o(n)
+
+    while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+      if (isSameVNode(oldStartVNode, newStartVNode)) {
+        // 会递归比较子节点 同时比对这两个的差异
+        patch(oldStartVNode, newStartVNode);
+        oldStartVNode = oldChildren[++oldStartIndex];
+        newStartVNode = newChildren[++newStartIndex];
+      } else if (isSameVNode(oldEndVNode, newEndVNode)) {
+        patch(oldEndVNode, newEndVNode);
+        oldEndVNode = oldChildren[--oldEndIndex];
+        newEndVNode = newChildren[--newEndIndex];
+      } else if (isSameVNode(oldStartVNode, newEndVNode)) {
+        patch(oldStartVNode, newEndVNode);
+        el.insertBefore(oldStartVNode.el, oldEndVNode.el.nextSibling);
+        oldStartVNode = oldChildren[++oldStartIndex];
+        newEndVNode = newChildren[--newEndIndex];
+      } else if (isSameVNode(oldEndVNode, newStartVNode)) {
+        patch(oldEndVNode, newStartVNode);
+        el.insertBefore(oldEndVNode.el, oldStartVNode.el);
+        oldEndVNode = oldChildren[--oldEndIndex];
+        newStartVNode = newChildren[++newStartIndex];
+      } else ;
+    }
+
+    if (newStartIndex <= newEndIndex) {
+      const anchor = newChildren[newEndIndex + 1] == null ? null : newChildren[newEndIndex + 1].el;
+
+      for (let i = newStartIndex; i <= newEndIndex; i++) {
+        // 看一下 当前尾结点的下一个元素是否存在 如果存在则是插入到下一个元素的前面
+        // 如果下一个是 Null，就是 appendChild
+        // 这里可能是向前追加 可能是向后追加
+        // anchor 是 Null 的时候，相当于 appendChild
+        el.insertBefore(createElm(newChildren[i]), anchor);
+      }
+    }
+
+    if (oldStartIndex <= oldEndIndex) {
+      for (let i = oldStartIndex; i <= oldEndIndex; i++) {
+        // 老的多余的 需要清理掉 直接删除即可
+        const child = oldChildren[i];
+        el.removeChild(child.el);
       }
     }
   }
@@ -867,7 +938,13 @@
     }
 
   });
-  const render1 = compileToFunction(`<div style="color: red">{{ name }}</div>`);
+  const render1 = compileToFunction(`<div >
+  <li key="E">E</li>
+  <li key="A">A</li>
+  <li key="B">B</li>
+  <li key="C">C</li>
+  <li key="D">D</li>
+</div>`);
   const oldVNode = render1.call(vm1);
   const el1 = createElm(oldVNode);
   document.body.appendChild(el1); // 新的虚拟节点
@@ -880,7 +957,12 @@
     }
 
   });
-  const render2 = compileToFunction(`<div style="color: orange">{{ name }}</div>`);
+  const render2 = compileToFunction(`<div >
+  <li key="D" style="color: cyan">D</li>
+  <li key="C" style="color: orange">C</li>
+  <li key="B" style="color: green">B</li>
+  <li key="A" style="color: red">A</li>
+</div>`);
   const newVNode = render2.call(vm2);
   setTimeout(() => {
     patch(oldVNode, newVNode);
