@@ -100,3 +100,8 @@ Vue 中的生命周期是怎么实现的？钩子方法（回调）
 8. `netTick`在哪里使用？原理是？
 9. `Vue`中`diff`算法原理
 10. 请说明`Vue`中`key`的作用和原理，谈谈你对他的理解
+
+## 看 Vue2.x 源码的步骤
+
+- 1. 先找 `package.json`，找到 `build` 命令
+- 2. 找到打包时的入口，文件在 `platform/web` 目录，`entry-runtime-with-compiler`
