@@ -4,6 +4,68 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Vue = factory());
 })(this, (function () { 'use strict';
 
+  const isFunction = v => typeof v === 'function';
+  const isObject = v => typeof v === 'object' && v !== null;
+  const strategies = {};
+  const lifecycle = ['beforeCreate', 'created', 'beforeMount', 'mounted'];
+  lifecycle.forEach(hook => {
+    strategies[hook] = function (parentVal, childVal) {
+      if (childVal) {
+        if (parentVal) {
+          return parentVal.concat(childVal);
+        } else {
+          if (Array.isArray(childVal)) {
+            return childVal;
+          } else {
+            return [childVal];
+          }
+        }
+      } else {
+        return parentVal;
+      }
+    };
+  });
+  const mergeOptions = (parentVal, childVal) => {
+    const options = {};
+
+    for (const key in parentVal) {
+      mergeField(key);
+    }
+
+    for (const key in childVal) {
+      if (!parentVal.hasOwnProperty(key)) {
+        mergeField(key);
+      }
+    }
+
+    function mergeField(key) {
+      const strategy = strategies[key];
+
+      if (strategy) {
+        options[key] = strategy(parentVal[key], childVal[key]);
+      } else {
+        options[key] = childVal[key] || parentVal[key];
+      }
+    }
+
+    return options;
+  };
+
+  function initGlobalAPI(Vue) {
+    Vue.options = {};
+
+    Vue.mixin = function (options) {
+      this.options = mergeOptions(this.options, options);
+      return this;
+    };
+
+    Vue.component = function () {};
+
+    Vue.filter = function () {};
+
+    Vue.directive = function () {};
+  }
+
   function generate(ast) {
     let children = genChildren(ast);
     let code = `_c('${ast.tag}',${ast.attrs.length ? genProps(ast.attrs) : undefined}${children ? `,${children}` : ''})`;
@@ -202,7 +264,6 @@
     // template -> ast -> render
     const ast = parseHTML(el);
     const code = generate(ast);
-    console.log(code);
     const render = new Function(`with(this){ return ${code} }`);
     return render;
   }
@@ -300,7 +361,11 @@
       vm._update(vm._render());
     };
 
-    new Watcher(vm, updateComponent, () => {}, true);
+    callHook(vm, 'beforeCreate');
+    new Watcher(vm, updateComponent, () => {
+      callHook(vm, 'created');
+    }, true);
+    callHook(vm, 'mounted');
   }
   function lifecycleMixin(vue) {
     vue.prototype._update = function (vnode) {
@@ -308,9 +373,15 @@
       vm.$el = patch(vm.$el, vnode);
     };
   }
+  function callHook(vm, hook) {
+    const handlers = vm.$options[hook];
 
-  const isFunction = v => typeof v === 'function';
-  const isObject = v => typeof v === 'object' && v !== null;
+    if (handlers) {
+      handlers.forEach(fn => {
+        fn.call(vm);
+      });
+    }
+  }
 
   const oldArrayPrototype = Array.prototype;
   const arrayProto = Object.create(oldArrayPrototype);
@@ -423,7 +494,9 @@
   function initMixin(Vue) {
     Vue.prototype._init = function (options) {
       const vm = this;
-      vm.$options = options; // 初始化状态
+      console.log(vm.constructor.options, Vue.options); // vm.$options = options
+
+      vm.$options = mergeOptions(vm.constructor.options, options); // 初始化状态
 
       initState(vm); // 挂载
 
@@ -506,6 +579,7 @@
   initMixin(Vue);
   renderMixin(Vue);
   lifecycleMixin(Vue);
+  initGlobalAPI(Vue);
 
   return Vue;
 
