@@ -105,3 +105,11 @@ Vue 中的生命周期是怎么实现的？钩子方法（回调）
 
 - 1. 先找 `package.json`，找到 `build` 命令
 - 2. 找到打包时的入口，文件在 `platform/web` 目录，`entry-runtime-with-compiler`
+- 3. `runtime-with-compiler` 实现了一个 `$mount` 方法，可以处理用户参数中包含 `template` 属性，会将 `template` 转化成 re`nder 函数，最终调用 `runtime/index.js`
+
+## Vue 的构造函数
+
+- core/instance/index.js 提供 Vue 的构造函数
+- core/index.js 对 Vue 构造函数扩展全局的 Api 方法 Vue.mixin
+- platform/runtime/index.js 扩展 transition/v-model/v-show 等功能 `__patch__`
+- platform/entry-runtime-with-compiler 实现 $mount 重写，实现模板编译功能
