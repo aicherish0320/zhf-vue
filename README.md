@@ -113,3 +113,5 @@ Vue 中的生命周期是怎么实现的？钩子方法（回调）
 - core/index.js 对 Vue 构造函数扩展全局的 Api 方法 Vue.mixin
 - platform/runtime/index.js 扩展 transition/v-model/v-show 等功能 `__patch__`
 - platform/entry-runtime-with-compiler 实现 $mount 重写，实现模板编译功能
+
+## 全局 API
