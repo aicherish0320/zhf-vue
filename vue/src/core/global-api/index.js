@@ -44,6 +44,7 @@ export function initGlobalAPI(Vue: GlobalAPI) {
   // 给不存在的属性 添加成响应式 vm.$set({}, 'a', 100)
   Vue.set = set;
   Vue.delete = del;
+  // 用了一个异步（同步执行完毕后才执行）任务，将多个方法维持一个队列里
   Vue.nextTick = nextTick;
 
   // 2.6 explicit observable API
