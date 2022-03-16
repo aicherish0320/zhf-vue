@@ -41,17 +41,23 @@ export class Observer {
 
   constructor(value: any) {
     this.value = value;
+    // 给每一个对象都增添一个dep属性
     this.dep = new Dep();
     this.vmCount = 0;
+    // 给对象增加一个 __ob__ 表示是一个响应式值
     def(value, "__ob__", this);
     if (Array.isArray(value)) {
       if (hasProto) {
+        // 重写数组原型方法
         protoAugment(value, arrayMethods);
       } else {
+        // 不支持继承就直接覆盖
         copyAugment(value, arrayMethods, arrayKeys);
       }
+      // 递归观测数据
       this.observeArray(value);
     } else {
+      // 对象也需要递归观测
       this.walk(value);
     }
   }
@@ -64,6 +70,7 @@ export class Observer {
   walk(obj: Object) {
     const keys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++) {
+      // 重写属性
       defineReactive(obj, keys[i]);
     }
   }
@@ -112,6 +119,7 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
     return;
   }
   let ob: Observer | void;
+  // 防止重复代理
   if (hasOwn(value, "__ob__") && value.__ob__ instanceof Observer) {
     ob = value.__ob__;
   } else if (
@@ -121,6 +129,7 @@ export function observe(value: any, asRootData: ?boolean): Observer | void {
     Object.isExtensible(value) &&
     !value._isVue
   ) {
+    // 真实的观测流程
     ob = new Observer(value);
   }
   if (asRootData && ob) {
@@ -140,7 +149,7 @@ export function defineReactive(
   shallow?: boolean
 ) {
   const dep = new Dep();
-
+  // Object.freeze 那么这个对象不能被增加 getter 和  setter
   const property = Object.getOwnPropertyDescriptor(obj, key);
   if (property && property.configurable === false) {
     return;
@@ -152,7 +161,7 @@ export function defineReactive(
   if ((!getter || setter) && arguments.length === 2) {
     val = obj[key];
   }
-
+  // 递归去增加 getter、setter
   let childOb = !shallow && observe(val);
   Object.defineProperty(obj, key, {
     enumerable: true,
@@ -162,7 +171,9 @@ export function defineReactive(
       if (Dep.target) {
         dep.depend();
         if (childOb) {
+          // 对象会收集依赖
           childOb.dep.depend();
+          // 如果是数组会递归收集
           if (Array.isArray(value)) {
             dependArray(value);
           }
@@ -187,6 +198,7 @@ export function defineReactive(
       } else {
         val = newVal;
       }
+      // 对修改的值 再进行递归观测
       childOb = !shallow && observe(newVal);
       dep.notify();
     },
