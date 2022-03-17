@@ -22,3 +22,14 @@ Vue 默认支持响应式数据变化，区别于双向绑定
 
 Vue 并不一个严格遵循 MVVM 模式的，vue 默认只是做视图的
 Vue 是一个渐进式框架 （组件化 + VueRouter+ Vuex + VueCli）
+
+## 步骤
+
+1. `new Vue` 会调用 `_init` 方法进行初始化操作
+2. 会将用户的选项放到 `vm.$options` 上
+3. 会对当前属性上有没有 `data` 数据 **initState**
+4. 有 `data` 判断 `data` 是不是一个函数，如果是函数取返回值 **initData**
+5. `observe` 去观测 `data` 中的数据
+
+
+如果有 el 需要挂载到页面上
