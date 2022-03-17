@@ -10,7 +10,7 @@ export default {
   },
   plugins: [
     babel({
-      excludes: 'node_modules/**'
+      exclude: 'node_modules/**'
     })
   ]
 }
