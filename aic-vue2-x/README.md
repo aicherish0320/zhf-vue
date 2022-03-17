@@ -29,7 +29,19 @@ Vue 是一个渐进式框架 （组件化 + VueRouter+ Vuex + VueCli）
 2. 会将用户的选项放到 `vm.$options` 上
 3. 会对当前属性上有没有 `data` 数据 **initState**
 4. 有 `data` 判断 `data` 是不是一个函数，如果是函数取返回值 **initData**
-5. `observe` 去观测 `data` 中的数据
-
+5. `observe` 去观测 `data` 中的数据，和 vm 没关系，说明 data 已经变成响应式了
+6. `vm` 上想取值也能取到 `data` 中的数据 `vm._data = data`，这样用户能取到 `data`
+7. `vm.xx => vm._data.xx`
 
 如果有 el 需要挂载到页面上
+
+## 数据响应式处理
+
+数组也可以使用 defineProperty，但是开发者很少采用 arr[x] = y 的方式去修改数组
+如果数组也使用了 defineProperty 还是可以实现修改索引触发更新的，但是这种操作概率低，所以源码中没有采用这种方式
+vue3 中为了兼容 proxy，内部对数组用的就是 defineProperty
+
+## 原型
+
+1. 每个对象都有一个 `__proto__`属性，指向它所属类的原型 `fn.__ptoto__ = Function.prototype`
+2. 每个原型上都有一个`constructor`属性，指向函数本身 `Function.prototype.constructor = Function`

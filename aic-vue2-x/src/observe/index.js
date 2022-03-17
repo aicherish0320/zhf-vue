@@ -1,4 +1,5 @@
-import { isObject } from '../utils'
+import { arrayPrototype } from '../array'
+import { isArray, isObject } from '../utils'
 
 export function observe(value) {
   if (!isObject(value)) {
@@ -14,8 +15,12 @@ export function observe(value) {
 
 class Observer {
   constructor(value) {
-    // 循环遍历对象，进行响应式观测
-    this.walk(value)
+    if (isArray(value)) {
+      value.__proto__ = arrayPrototype
+    } else {
+      // 循环遍历对象，进行响应式观测
+      this.walk(value)
+    }
   }
 
   walk(data) {
@@ -40,6 +45,8 @@ function defineReactive(obj, key, value) {
   observe(value)
   Object.defineProperty(obj, key, {
     get() {
+      console.log('获取 >>> ', key)
+      
       return value
     },
     set(newVal) {
