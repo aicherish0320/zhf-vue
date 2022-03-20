@@ -5,6 +5,10 @@ export function observe(value) {
   if (!isObject(value)) {
     return
   }
+  // 已经被观测过
+  if (value.__ob__) {
+    return
+  }
 
   // 需要对 对象进行观测
   // 如果一个数据已经被观测过了，就不要在进行观测了，用类来实现，观测过，就增加一个标识，
