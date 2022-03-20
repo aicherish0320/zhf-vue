@@ -12,6 +12,25 @@ const methods = ['push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort']
 methods.forEach((m) => {
   arrayPrototype[m] = function (...args) {
     console.log('数组更新')
+    let inserted
+
+    switch (m) {
+      case 'push':
+      case 'unshift':
+        inserted = args
+        break
+      case 'splice':
+        // arr.splice(0, 2, 200, 100)
+        inserted = args.slice(2)
+        break
+      default:
+        break
+    }
+
+    const ob = this.__ob__
+    if (inserted) {
+      ob.observerArray(inserted)
+    }
 
     oldArrayPrototype[m].call(this, ...args)
   }

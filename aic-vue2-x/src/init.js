@@ -13,7 +13,7 @@ export function initMixin(Vue) {
 
     if(vm.$options.el) {
       // 要将数据挂载到页面上
-      console.log('页面挂载');
+      // console.log('页面挂载');
     }
   }
 }
