@@ -1,4 +1,4 @@
-import { initState } from "./state"
+import { initState } from './state'
 
 export function initMixin(Vue) {
   // 后续组件化开发的时候 Vue.extend 可以创造一个子组件，子组件可以继承Vue，
@@ -11,8 +11,14 @@ export function initMixin(Vue) {
 
     initState(vm)
 
-    if(vm.$options.el) {
+    if (vm.$options.el) {
       // 要将数据挂载到页面上
+      /*
+        template -> ast（用来描述语法的，描述语法本身的） -> 描述成一个树结构 -> 将代码重组成 js 语法
+        模板编译原理 （把 template 模板编译成 render 函数）-> 虚拟DOM -> diff 算法对比虚拟DOM
+        ast -> render -> 返回 VNode -> 生成真实 dom
+        更新的时候再次调用 render -> 新的 VNode -> 新旧比对 -> 更新真实 dom
+      */
       // console.log('页面挂载');
     }
   }
