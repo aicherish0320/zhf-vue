@@ -41,5 +41,6 @@ export function initMixin(Vue) {
     }
 
     // opts.render
+    console.log(opts.render);
   }
 }
