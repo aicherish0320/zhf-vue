@@ -19,11 +19,11 @@ function proxy(vm, key, source) {
 }
 
 function initData(vm) {
-  vm._data = vm.$options.data
+ const data =  vm._data = vm.$options.data
 
   observe(vm._data)
 
-  for (const key of vm._data) {
+  for (const key in data) {
     proxy(vm, key, '_data')
   }
 }
