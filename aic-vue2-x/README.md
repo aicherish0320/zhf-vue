@@ -48,3 +48,20 @@ vue3 中为了兼容 proxy，内部对数组用的就是 defineProperty
 
 1. 每个对象都有一个 `__proto__`属性，指向它所属类的原型 `fn.__ptoto__ = Function.prototype`
 2. 每个原型上都有一个`constructor`属性，指向函数本身 `Function.prototype.constructor = Function`
+
+## Vue 的渲染流程（只会走一次，后续更新的时候，直接调用 render 函数，生成虚拟 DOM，进行 dom diff）
+
+> 1. 默认调用 `vue._init` 方法将用户的参数挂载到 $options 选项中 vm.$options
+> 2. vue 会根据用户的参数进行数据的初始化 props computed watch，会获取到对象作为数据， 可以通过 `vm._data` 访问到用户的数据
+> 3. 对数据进行观测，对象（递归使用 defineProperty）和数组（数组的方法重写），劫持用户的操作，比如：用户修改了数据 -> 更新视图
+> 4. 将数据代理到 vm 对象上 vm.xx -> `vm._data.xx`
+> 5. 判断用户是否传入了 el 属性，内部会调用 $mount，此方法也可以用户自己调用
+> 6. 对模板的优先级处理， render -> template -> el
+> 7. 将模板编译成 函数，parserHTML 函数解析模板 -> ast 语法树，解析语法树生成 code -> render 函数
+> 8. 通过 render 方法，生成虚拟 dom + 真实数据 = 真实 DOM
+> 9. 根据虚拟节点 渲染成 真实节点
+
+## AST 和 VNode
+
+AST 是描述语法的，并没有用户自己的逻辑，只有语法解析出来的内容
+VNode 是描述 dom 结构的，可以自己去扩展属性
