@@ -1,5 +1,6 @@
 import { arrayPrototype } from '../array'
 import { isArray, isObject } from '../utils'
+import Dep from './dep'
 
 export function observe(value) {
   if (!isObject(value)) {
@@ -60,20 +61,23 @@ class Observer {
 // Object.defineProperty 性能低，而且还需要循环递归遍历去定义getter/setter
 function defineReactive(obj, key, value) {
   observe(value)
+  const dep = new Dep()
+
   Object.defineProperty(obj, key, {
     get() {
-      console.log('获取 >>> ', key)
-
+      if (Dep.target) {
+        dep.depend()
+      }
       return value
     },
     set(newVal) {
       if (newVal === value) {
         return
       }
-      console.log('更新 >>> ', key)
+      observe(newVal)
       value = newVal
 
-      observe(newVal)
+      dep.notify()
     }
   })
 }

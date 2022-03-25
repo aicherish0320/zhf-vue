@@ -5,6 +5,7 @@ export function patch(el, vNode) {
   // el.nextSibling 不存在就是 null，如果为 null，insertBefore 相当于 appendChild
   parentNode.insertBefore(elm, el.nextSibling)
   parentNode.removeChild(el)
+  return elm
 }
 
 function createElm(vNode) {
