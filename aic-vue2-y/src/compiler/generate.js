@@ -56,5 +56,5 @@ function gen(el) {
 }
 
 export function generate(ast) {
-  return `_c(${ast.tag}, ${genProps(ast.attrs)},${genChildren(ast.children)})`
+  return `_c('${ast.tag}', ${genProps(ast.attrs)},${genChildren(ast.children)})`
 }
