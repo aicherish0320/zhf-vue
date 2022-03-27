@@ -1,3 +1,4 @@
+import { queueWatcher } from '../scheduler'
 import Dep from './dep'
 
 let id = 0
@@ -32,6 +33,16 @@ class Watcher {
     }
   }
   update() {
+    // 每次数据更新都会同步调用这个方法，我们可以将更新逻辑缓存起来，等会同步更新数据的逻辑执行完毕后，依次调用（去重逻辑）
+    //
+    console.log('缓存更新 >>> ')
+
+    queueWatcher(this)
+    // this.get()
+  }
+  run() {
+    console.log('真正更新 >>> ')
+    // 真正更新
     this.get()
   }
 }
