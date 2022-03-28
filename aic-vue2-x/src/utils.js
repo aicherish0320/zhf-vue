@@ -21,10 +21,49 @@ function flushCallbacks() {
 export function nextTick(fn) {
   // 1.
   // Promise.resolve().then(fn)
-  // 2. 
+  // 2.
   callbacks.push(fn)
   if (!waiting) {
     return Promise.resolve().then(flushCallbacks)
     waiting = true
   }
+}
+// 存放策略
+let strats = {}
+let lifecycle = ['beforeCreate', 'created', 'beforeMount', 'mounted']
+lifecycle.forEach((hook) => {
+  strats[hook] = function (parentVal, childVal) {
+    if (childVal) {
+      if (parentVal) {
+        return parentVal.concat(childVal)
+      } else {
+        return [childVal]
+      }
+    } else {
+      return parentVal
+    }
+  }
+})
+
+export function mergeOptions(parentVal, childVal) {
+  const options = {}
+  for (const key in parentVal) {
+    mergeField(key)
+  }
+  for (const key in childVal) {
+    if (!parentVal.hasOwnProperty(key)) {
+      mergeField(key)
+    }
+  }
+
+  function mergeField(key) {
+    let start = strats[key]
+    if (start) {
+      options[key] = start(parentVal[key], childVal[key])
+    } else {
+      options[key] = childVal[key] || parentVal[key]
+    }
+  }
+
+  return options
 }
