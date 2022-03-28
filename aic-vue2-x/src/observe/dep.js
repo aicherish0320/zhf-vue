@@ -8,14 +8,14 @@ class Dep {
 
   depend() {
     // watcher 记住 dep
-    Dep.target.addDep(this)
+    Dep.target && Dep.target.addDep(this)
   }
   addSub(w) {
     // dep 记住 watcher
     this.subs.push(w)
   }
-  notify(){
-    this.subs.forEach(w => w.update())
+  notify() {
+    this.subs.forEach((w) => w.update())
   }
 }
 // 相当于 window.target

@@ -12,6 +12,8 @@ const methods = ['push', 'pop', 'shift', 'unshift', 'splice', 'reverse', 'sort']
 methods.forEach((m) => {
   arrayPrototype[m] = function (...args) {
     console.log('数组更新')
+    oldArrayPrototype[m].call(this, ...args)
+
     let inserted
 
     switch (m) {
@@ -31,7 +33,6 @@ methods.forEach((m) => {
     if (inserted) {
       ob.observerArray(inserted)
     }
-
-    oldArrayPrototype[m].call(this, ...args)
+    ob.dep.notify()
   }
 })

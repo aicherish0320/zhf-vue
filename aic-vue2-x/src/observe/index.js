@@ -20,6 +20,10 @@ export function observe(value) {
 
 class Observer {
   constructor(value) {
+    // 对象和数组都会有
+    // 对象表面看是重复定义了，但是，如果给对象和数组添加一个自定义属性，我希望也能更新视图
+    // {}.__ob__.dep => watcher 对象本身 （$set原理）
+    this.dep = new Dep()
     Object.defineProperty(value, '__ob__', {
       enumerable: false,
       value: this
@@ -29,6 +33,8 @@ class Observer {
       value.__proto__ = arrayPrototype
 
       this.observerArray(value)
+
+      // 数组，收集数组的依赖，给每个数组添加一个 dep
     } else {
       // 循环遍历对象，进行响应式观测
       this.walk(value)
@@ -48,6 +54,17 @@ class Observer {
     })
   }
 }
+// 让数组里的引用类型都收集依赖
+function dependArray(value) {
+  for (let i = 0; i < value.length; i++) {
+    const current = value[i]
+    current.__ob__ && current.__ob__.dep.depend()
+
+    if (Array.isArray(current)) {
+      dependArray(current)
+    }
+  }
+}
 
 /*
   性能优化的原则
@@ -60,7 +77,8 @@ class Observer {
 // Vue2 性能瓶颈的原因就在此
 // Object.defineProperty 性能低，而且还需要循环递归遍历去定义getter/setter
 function defineReactive(obj, key, value) {
-  observe(value)
+  let childOb = observe(value)
+  // 数组的 dep
   const dep = new Dep()
 
   Object.defineProperty(obj, key, {
@@ -68,6 +86,17 @@ function defineReactive(obj, key, value) {
       if (Dep.target) {
         dep.depend()
       }
+
+      if (childOb) {
+        // 取属性的时候 会对对应的值(对象本身和数组)进行依赖收集
+        childOb.dep.depend()
+
+        if (Array.isArray(value)) {
+          // 可能是数组套数组
+          dependArray(value)
+        }
+      }
+
       return value
     },
     set(newVal) {
@@ -81,3 +110,10 @@ function defineReactive(obj, key, value) {
     }
   })
 }
+
+// 1. 默认 Vue 在初始化的时候，会对对象每一个属性都进行劫持，增加 dep 属性，当取值的时候会做依赖收集
+// 2. 默认还会对属性值是（对象和数组的本身进行增加 dep 属性） 进行依赖收集
+// 3. 如果是属性变化，触发属性对应的 dep 去更新
+// 4. 如果是数组更新，触发数组本身的 dep 进行更新
+// 5. 如果取值的时候是数组还要让数组中的对象类型也进行依赖收集（递归依赖收集）
+// 6. 如果数组里面放对象，默认对象里的属性是会进行依赖搜集的，因为在取值时，会进行JSON.stringify操作
