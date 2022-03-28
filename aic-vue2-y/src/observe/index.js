@@ -1,5 +1,6 @@
 import { arrayProto } from '../array/index'
 import { isArray, isObject } from '../utils/index'
+import Dep from './dep'
 
 export function observe(data) {
   if (!isObject(data)) {
@@ -38,10 +39,13 @@ class Observer {
 }
 
 function defineReactive(obj, key, value) {
+  const dep = new Dep()
+
   observe(value)
 
   Object.defineProperty(obj, key, {
     get() {
+      Dep.target && dep.depend()
       return value
     },
     set(newVal) {
@@ -50,6 +54,7 @@ function defineReactive(obj, key, value) {
       }
       observe(newVal)
       value = newVal
+      dep.notify()
     }
   })
 }

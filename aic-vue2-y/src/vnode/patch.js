@@ -8,10 +8,8 @@ export function patch(el, vnode) {
 
 function createElm(vnode) {
   const { vm, tag, data, children, text } = vnode
-  console.log(data);
   if (typeof vnode.tag === 'string') {
     const el = (vnode.el = document.createElement(tag))
-
 
     updateProperties(vnode.el, data)
 
@@ -24,7 +22,7 @@ function createElm(vnode) {
   return vnode.el
 }
 
-function updateProperties(el, props={}) {
+function updateProperties(el, props = {}) {
   for (const key in props) {
     el.setAttribute(key, props[key])
   }
