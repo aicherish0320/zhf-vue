@@ -77,6 +77,8 @@ function dependArray(value) {
 // Vue2 性能瓶颈的原因就在此
 // Object.defineProperty 性能低，而且还需要循环递归遍历去定义getter/setter
 function defineReactive(obj, key, value) {
+  // childOb.dep 存储在数组值身上
+  
   let childOb = observe(value)
   // 数组的 dep
   const dep = new Dep()
@@ -105,7 +107,6 @@ function defineReactive(obj, key, value) {
       }
       observe(newVal)
       value = newVal
-
       dep.notify()
     }
   })
