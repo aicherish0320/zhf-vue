@@ -16,6 +16,8 @@ export function observe(data) {
 
 class Observer {
   constructor(data) {
+    // 数组和对象都有
+    this.dep = new Dep()
     Object.defineProperty(data, '__ob__', {
       enumerable: false,
       value: this
@@ -38,14 +40,30 @@ class Observer {
   }
 }
 
-function defineReactive(obj, key, value) {
-  const dep = new Dep()
+function dependArray(value) {
+  for (let i = 0; i < value.length; i++) {
+    const current = value[i];
+    current.__ob__ && current.__ob__.dep.depend()
+    if (Array.isArray(current)) {
+      dependArray(current)
+    }
+  }
+}
 
-  observe(value)
+function defineReactive(obj, key, value) {
+  const childOb = observe(value)
+
+  const dep = new Dep()
 
   Object.defineProperty(obj, key, {
     get() {
       Dep.target && dep.depend()
+      if(childOb) {
+        childOb.dep.depend()
+      }
+      if(Array.isArray(value)) {
+        dependArray(value)
+      }
       return value
     },
     set(newVal) {

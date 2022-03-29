@@ -6,7 +6,7 @@ class Dep {
     this.subs = []
   }
   depend() {
-    Dep.target.addDep(this)
+    Dep.target&& Dep.target.addDep(this)
   }
   addSub(w) {
     this.subs.push(w)

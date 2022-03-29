@@ -34,5 +34,6 @@ methods.forEach((m) => {
     if (inserted) {
       ob.observeArray(inserted)
     }
+    ob.dep.notify()
   }
 })
