@@ -1,11 +1,13 @@
 import { compileToFunction } from './compiler/index'
 import { mountComponent } from './lifecycyle'
 import { initState } from './state'
+import { mergeOptions } from './utils/index'
 
 export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
     const vm = this
     vm.$options = options
+    vm.$options = mergeOptions(vm.constructor.options, options)
 
     initState(vm)
 
@@ -25,7 +27,7 @@ export function initMixin(Vue) {
       }
       opts.render = compileToFunction(template)
     }
-    
+
     mountComponent(vm)
   }
 }
