@@ -22,7 +22,13 @@ const vm1 = new Vue({
     name: 'aic'
   }
 })
-const render1 = compileToFunction('<h1 id="a">{{ name }}</h1>')
+const render1 = compileToFunction(`<h1>
+  <li key="E">E</li>
+  <li key="A">A</li>
+  <li key="B">B</li>
+  <li key="C">C</li>
+  <li key="D">D</li>
+</h1>`)
 const oldVNode = render1.call(vm1)
 const el1 = createElm(oldVNode)
 document.body.append(el1)
@@ -33,9 +39,12 @@ const vm2 = new Vue({
     name: 'tom'
   }
 })
-const render2 = compileToFunction(
-  '<h1 id="a" style="color:red;background:#0ff">{{ name }}</h1>'
-)
+const render2 = compileToFunction(`<h1>
+  <li key="D" style="color:green">D</li>
+  <li key="C" style="color:pink">C</li>
+  <li key="B" style="color:blue">B</li>
+  <li key="A" style="color:red">A</li>
+</h1>`)
 const newVNode = render2.call(vm2)
 // 比对两个虚拟节点的差异，更新需要更新的地方
 setTimeout(() => {

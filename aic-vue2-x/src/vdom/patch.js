@@ -28,6 +28,90 @@ export function patch(oldVNode, vNode) {
     // 元素 更新属性
     updateProperties(vNode, oldVNode.data)
     // 是相同节点，复用节点，再更新不一样的地方（属性）
+
+    //! 比较子节点
+    const oldChildren = oldVNode.children || []
+    const newChildren = vNode.children || []
+    // 情况一：老的有儿子 新的没儿子
+    if (oldChildren.length > 0 && newChildren.length === 0) {
+      el.innerHTML = ''
+      // 情况二：新的有儿子 老的没儿子
+    } else if (newChildren.length > 0 && oldChildren.length === 0) {
+      newChildren.forEach((child) => el.appendChild(createElm(child)))
+    } else {
+      // 情况三：新老都有儿子
+      updateChildren(el, oldChildren, newChildren)
+    }
+  }
+}
+
+function updateChildren(el, oldChildren, newChildren) {
+  // vue2 中如何做的 diff 算法
+  // vue 内部做优化（能尽量提升性能，实在不行，再暴力比对）
+  // 在列表中新增和删除
+
+  let oldStartIndex = 0
+  let oldStartVNode = oldChildren[0]
+  let oldEndIndex = oldChildren.length - 1
+  let oldEndVNode = oldChildren[oldEndIndex]
+  let newStartIndex = 0
+  let newStartVNode = newChildren[0]
+  let newEndIndex = newChildren.length - 1
+
+  let newEndVNode = newChildren[newEndIndex]
+  // diff 算法的复杂度是 O(n)
+  while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    // 老的开始 新的开始
+    if (isSameVNode(oldStartVNode, newStartVNode)) {
+      patch(oldStartVNode, newStartVNode) // 会递归比较子节点
+
+      oldStartVNode = oldChildren[++oldStartIndex]
+      newStartVNode = newChildren[++newStartIndex]
+      // 老的结束 新的结束
+    } else if (isSameVNode(oldEndVNode, newEndVNode)) {
+      patch(oldEndVNode, newEndVNode)
+
+      oldEndVNode = oldChildren[--oldEndIndex]
+      newEndVNode = newChildren[--newEndIndex]
+      // 老的开始 新的结束
+    } else if(isSameVNode(oldStartVNode, newEndVNode)) {
+      patch(oldStartVNode, newEndVNode)
+
+      el.insertBefore(oldStartVNode.el, oldEndVNode.el.nextSibling)
+
+      oldStartVNode = oldChildren[++oldStartIndex]
+      newEndVNode = newChildren[--newEndIndex]
+      // 老的结束 新的开始
+    } else if(isSameVNode(oldEndVNode, newStartVNode)) {
+      patch(oldEndVNode, newStartVNode)
+
+      el.insertBefore(oldEndVNode.el, oldStartVNode.el)
+
+      oldEndVNode = oldChildren[--oldEndIndex]
+      newStartVNode = newChildren[++newStartIndex]
+
+    } else {
+      // 之前的逻辑都是考虑 用户一些特殊情况 但是有非特殊的 乱序排
+    }
+  }
+  // 说明老的比完了
+  if (newStartIndex <= newEndIndex) {
+    // 看一下当前尾结点的下一个元素是否存在，如果存在则插入到它前面
+    // 如果下一个是 null，就是 appendChild
+    const anchor =
+      newChildren[newEndIndex + 1] == null
+        ? null
+        : newChildren[newEndIndex + 1].el
+    for (let i = newStartIndex; i <= newEndIndex; i++) {
+      el.insertBefore(createElm(newChildren[i]), anchor)
+    }
+  }
+  // 说明新的比完了
+  if (oldStartIndex <= oldEndIndex) {
+    for (let i = oldStartIndex; i <= oldEndIndex; i++) {
+      const child = oldChildren[i]
+      el.removeChild(child.el)
+    }
   }
 }
 
@@ -59,7 +143,7 @@ function updateProperties(vNode, oldProps = {}) {
   // style
   const newStyle = newProps.style || {}
   const oldStyle = oldProps.style || {}
-  
+
   // 老的有 新的没有 就把页面上的样式删除
   for (const key in oldStyle) {
     if (!newStyle[key]) {
@@ -68,7 +152,7 @@ function updateProperties(vNode, oldProps = {}) {
   }
 
   // 新旧比对 两个对象如何比对差异？
-  
+
   // 直接用新的改掉老的就可以了
   for (const key in newProps) {
     if (key === 'style') {
