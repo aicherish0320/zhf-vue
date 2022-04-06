@@ -54,15 +54,32 @@ function updateChildren(el, oldChildren, newChildren) {
   let oldStartVNode = oldChildren[0]
   let oldEndIndex = oldChildren.length - 1
   let oldEndVNode = oldChildren[oldEndIndex]
+
   let newStartIndex = 0
   let newStartVNode = newChildren[0]
   let newEndIndex = newChildren.length - 1
-
   let newEndVNode = newChildren[newEndIndex]
+
+  function makeKeyByIndex(children) {
+    const map = {}
+
+    children.forEach((item, index) => {
+      map[item.key] = index
+    })
+
+    return map
+  }
+  const mapping = makeKeyByIndex(oldChildren)
+
   // diff 算法的复杂度是 O(n)
   while (oldStartIndex <= oldEndIndex && newStartIndex <= newEndIndex) {
+    if (!oldStartVNode) {
+      oldStartVNode = oldChildren[++oldStartIndex]
+    } else if (!oldEndVNode) {
+      oldEndVNode = oldChildren[--oldEndIndex]
+    }
     // 老的开始 新的开始
-    if (isSameVNode(oldStartVNode, newStartVNode)) {
+    else if (isSameVNode(oldStartVNode, newStartVNode)) {
       patch(oldStartVNode, newStartVNode) // 会递归比较子节点
 
       oldStartVNode = oldChildren[++oldStartIndex]
@@ -74,7 +91,7 @@ function updateChildren(el, oldChildren, newChildren) {
       oldEndVNode = oldChildren[--oldEndIndex]
       newEndVNode = newChildren[--newEndIndex]
       // 老的开始 新的结束
-    } else if(isSameVNode(oldStartVNode, newEndVNode)) {
+    } else if (isSameVNode(oldStartVNode, newEndVNode)) {
       patch(oldStartVNode, newEndVNode)
 
       el.insertBefore(oldStartVNode.el, oldEndVNode.el.nextSibling)
@@ -82,16 +99,30 @@ function updateChildren(el, oldChildren, newChildren) {
       oldStartVNode = oldChildren[++oldStartIndex]
       newEndVNode = newChildren[--newEndIndex]
       // 老的结束 新的开始
-    } else if(isSameVNode(oldEndVNode, newStartVNode)) {
+    } else if (isSameVNode(oldEndVNode, newStartVNode)) {
       patch(oldEndVNode, newStartVNode)
 
       el.insertBefore(oldEndVNode.el, oldStartVNode.el)
 
       oldEndVNode = oldChildren[--oldEndIndex]
       newStartVNode = newChildren[++newStartIndex]
-
     } else {
       // 之前的逻辑都是考虑 用户一些特殊情况 但是有非特殊的 乱序排
+
+      let moveIndex = mapping[newStartVNode.key]
+      if (moveIndex == undefined) {
+        // 没有直接将节点插入到开头的前面
+        el.insertBefore(createElm(newStartVNode), oldStartVNode.el)
+      } else {
+        //
+        const moveVNode = oldChildren[moveIndex]
+        el.insertBefore(moveVNode.el, oldStartVNode.el)
+        patch(moveVNode, newStartVNode)
+        // 将移动的节点标记为空
+        oldChildren[moveIndex] = undefined
+      }
+
+      newStartVNode = newChildren[++newStartIndex]
     }
   }
   // 说明老的比完了
@@ -110,7 +141,8 @@ function updateChildren(el, oldChildren, newChildren) {
   if (oldStartIndex <= oldEndIndex) {
     for (let i = oldStartIndex; i <= oldEndIndex; i++) {
       const child = oldChildren[i]
-      el.removeChild(child.el)
+      // child 可能为 undefined
+      child && el.removeChild(child.el)
     }
   }
 }

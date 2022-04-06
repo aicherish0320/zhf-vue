@@ -23,7 +23,6 @@ const vm1 = new Vue({
   }
 })
 const render1 = compileToFunction(`<h1>
-  <li key="E">E</li>
   <li key="A">A</li>
   <li key="B">B</li>
   <li key="C">C</li>
@@ -40,10 +39,11 @@ const vm2 = new Vue({
   }
 })
 const render2 = compileToFunction(`<h1>
-  <li key="D" style="color:green">D</li>
-  <li key="C" style="color:pink">C</li>
-  <li key="B" style="color:blue">B</li>
-  <li key="A" style="color:red">A</li>
+  <li key="F" style="color:green">F</li>
+  <li key="B" style="color:pink">B</li>
+  <li key="A" style="color:blue">A</li>
+  <li key="E" style="color:red">E</li>
+  <li key="P" style="color:red">P</li>
 </h1>`)
 const newVNode = render2.call(vm2)
 // 比对两个虚拟节点的差异，更新需要更新的地方
