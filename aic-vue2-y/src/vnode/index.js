@@ -5,6 +5,10 @@ export function createText(vm, text) {
   return vNode(vm, undefined, undefined, undefined, undefined, text)
 }
 
+export function isSameVNode(newVNode, oldVNode) {
+  return newVNode.tag === oldVNode.tag && newVNode.key === oldVNode.key
+}
+
 function vNode(vm, tag, data, children, key, text) {
   return { vm, tag, data, children, key, text }
 }
