@@ -43,6 +43,8 @@ export function patch(oldVNode, vNode) {
       updateChildren(el, oldChildren, newChildren)
     }
   }
+
+  return el
 }
 
 function updateChildren(el, oldChildren, newChildren) {
