@@ -3,7 +3,11 @@ import { mergeOptions } from "../utils"
 export function initGlobalAPI(Vue) {
   // 全局属性
   Vue.options = {}
-
+  /*
+    {
+      beforeCreate() {}
+    }
+  */
   Vue.mixin = function (options) {
     this.options = mergeOptions(this.options, options)
    
