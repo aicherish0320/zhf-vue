@@ -9,6 +9,7 @@ export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
     const vm = this
     // 为了后续扩展的方法，都可以获取到 options
+    debugger
     vm.$options = mergeOptions(vm.constructor.options, options)
     // vm.$options = options
     // 把用户的选项放到 vm 上，这样在其他方法中都可以获取到 options
@@ -42,11 +43,11 @@ export function initMixin(Vue) {
       let render = compileToFunction(template)
       opts.render = render
     }
-    
+
     mountComponent(vm)
   }
 
-  Vue.prototype.$nextTick = function(fn) {
+  Vue.prototype.$nextTick = function (fn) {
     nextTick(fn)
   }
 }

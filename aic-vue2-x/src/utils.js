@@ -45,6 +45,19 @@ lifecycle.forEach((hook) => {
   }
 })
 
+strats.components = function (parentVal, childVal) {
+  // 合并后产生一个新对象
+  let res = Object.create(parentVal)
+
+  if (childVal) {
+    for (const key in childVal) {
+      res[key] = childVal[key]
+    }
+  }
+
+  return res
+}
+
 export function mergeOptions(parentVal, childVal) {
   const options = {}
   for (const key in parentVal) {
@@ -67,3 +80,14 @@ export function mergeOptions(parentVal, childVal) {
 
   return options
 }
+
+function makeMap(str) {
+  let tagList = str.split(',')
+  return function (tagName) {
+    return tagList.includes(tagName)
+  }
+}
+
+export const isReservedTag = makeMap(
+  `div,span,p,h1,h2,h3,h4,h5,h6,a,button,div,section,style,a,link,script,view,img,input`
+)
