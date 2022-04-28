@@ -14,7 +14,8 @@ function createComponent(vm, tag, data, children, key, Ctor) {
   // componentOptions 存放一个 重要属性 Ctor
   const componentVNode = VNode(vm, tag, data, undefined, key, undefined, {
     Ctor,
-    children
+    children,
+    tag
   })
   return componentVNode
 }
