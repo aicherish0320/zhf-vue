@@ -1,30 +1,35 @@
-// ts typescript 就是给 js 语言添加 type 掌握 ts 中哪些类型，什么时候用写这个类型
-// ts 具备类型推导的功能，自动会根据等号右边的值推导等号左边
-// 如果在 ts 中不指定类型，则默认是 any 类型，可以被任何类型所赋值
+//! null undefined
+// ts 中 null 和 undefined 可以赋值给任何类型（任何类型的子类型）
+// 严格模式中不能将 null 和 undefined 赋值给给任何类型
+// nuLl -> null undefined -> undefined
 
-// ts 中的基础类型
-let str: string = 'aic'
-let num: number = 23
-let bool: boolean = true
-// !元组
-let tuple: [number, string] = [23, 'aicherish']
-// 元组在通过方法添加数据时，只能添加已经存在的类型
-tuple.push(12)
-// tuple[4] = 'newItem' // error
-// !数组
-let arr: number[] = [1, 2, 3]
-let arr2: (number | string)[] = [1, 2, 'str']
-let arr4: Array<number | string> = [1, 'str']
-// !枚举
-enum AUTH {
-  ADMIN = 1,
-  MANAGER = 1 << 1,
-  USER = 1 << 2
+// const num: number = null
+const un: undefined = undefined
+const nu: null = null
+// ! void 空类型 一般用于函数的返回值类型
+function fn1(): void {}
+function fn2(): void {
+  return undefined
 }
-console.log(AUTH.ADMIN)
+// function fn3(): void {
+//   // 严格模式下 不行
+//   return null
+// }
 
-// 在 js 中，当我们调用方法的时候（存在装箱的概念）
-// 如果默认调用基础类型上的方法，会有装箱的功能，就是把基础类型变成对象类型
+//! never 标识永远不
+// 1. 程序无法到终点，死循环，抛错；2. 判断的时候，出现 never；3. 用 never 来做一些特殊的处理
+function fn3(): never {
+  throw new Error()
+}
+function fn4(): never {
+  while (true) {}
+}
 
-// 写完的结果 默认添加 export {} 表示当前是一个模块
+// ! Symbol bigInt
+
+// ! object
+// ! any
+
+const s1 = Symbol()
+
 export {}
