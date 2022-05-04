@@ -1,49 +1,59 @@
-// 函数 我们一般也会标识类型 函数的参数和返回值
-// 1. function 声明 2. 表达式声明
+// 类（编译出来的结果也是函数），构造函数的区别
+// 构造函数的特点能 new，而且可以调用
 
-type Sum = (a: string, b: string) => string
-const sum: Sum = (a, b) => a + b
+// 类中的概念，实例的属性、共享属性、静态属性（类直接调用）、方法
 
-// 函数的参数 可选参数、默认值、剩余运算符
-function optional(a: string, c: number = 100, b?: string) {
-  return c
-}
-
-// 标识函数类型中的 this 类型
-function callThis(this: string) {
-  // this
-}
-callThis.call('abc')
-
-// 函数的重载
-// 'abc' -> ['a', 'b', 'c']
-// 123  -> [1, 2, 3]
-
-function toArray(arg: string): string[]
-function toArray(arg: number): number[]
-function toArray(arg: number | string): number[] | string[] {
-  if (typeof arg === 'string') {
-    return arg.split('')
-  } else {
-    return arg
-      .toString()
-      .split('')
-      .map((i) => Number(i))
+// 类中的 this，默认不知道自己具备什么属性
+class Point {
+  public x: number
+  public y: number
+  constructor(x: number, y: number) {
+    this.x = x
+    this.y = y
   }
 }
 
-const arr = toArray(123)
-const strArr = toArray('123')
+const p = new Point(1, 1)
 
-// function toArray2<T>(arg: T): T[] {
-//   if (typeof arg === 'string') {
-//     return arg.split('')
-//   } else {
-//     return arg
-//       .toString()
-//       .split('')
-//       .map((i) => Number(i))
-//   }
-// }
+class Animal {
+  public name: string
+  protected height: number
+  constructor(name: string, height: number) {
+    this.name = name
+    this.height = height
+  }
+}
+
+class Dog extends Animal {
+  static color: string
+  constructor(name: string, height: number) {
+    super(name, height)
+    // this.height
+  }
+}
+
+const d = new Dog('yellow', 1)
+
+// Dog.color
+
+class Cat extends Animal {
+  constructor(name: string, height: number, private aName: string) {
+    super(name, height)
+    // Animal.call(this)
+  }
+  get newName() {
+    return this.aName
+  }
+  set newName(newVal) {
+    this.aName = newVal
+  }
+}
+
+const cat = new Cat('tom', 120, 'jack')
+
+// cat.newName
+
+// super 在构造函数和静态方法中 super 指向父亲
+// super 在原型方法中指代的是父亲的原型
 
 export {}
