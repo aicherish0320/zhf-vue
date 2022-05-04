@@ -1,59 +1,55 @@
-// 类（编译出来的结果也是函数），构造函数的区别
-// 构造函数的特点能 new，而且可以调用
+// 类的装饰器（语法糖），用来装饰类
+// 类的装饰器 可以装饰类本身 类的属性 类的方法 静态属性
 
-// 类中的概念，实例的属性、共享属性、静态属性（类直接调用）、方法
-
-// 类中的 this，默认不知道自己具备什么属性
-class Point {
-  public x: number
-  public y: number
-  constructor(x: number, y: number) {
-    this.x = x
-    this.y = y
+function addSay(target: Function) {
+  target.prototype.say = function () {
+    console.log('say >>> ')
   }
 }
 
-const p = new Point(1, 1)
-
-class Animal {
-  public name: string
-  protected height: number
-  constructor(name: string, height: number) {
-    this.name = name
-    this.height = height
+function toUpper(name: string) {
+  // console.log(name)
+  // key：实例的属性
+  return function (target: any, key: string) {
+    let val: string
+    // target === Person.prototype 类的原型 // true
+    // console.log(target, key)
+    Object.defineProperty(target, key, {
+      get() {
+        return val.toUpperCase()
+      },
+      set(newVal) {
+        val = newVal
+      }
+    })
   }
 }
 
-class Dog extends Animal {
-  static color: string
-  constructor(name: string, height: number) {
-    super(name, height)
-    // this.height
+function Enum(flag: boolean) {
+  return function (target: any, key: string, desc: PropertyDescriptor) {
+    desc.enumerable = flag
+  }
+}
+@addSay
+class Person {
+  say!: Function
+  // @toUpper('upper')
+  // 实例的属性
+  public name: string = 'aicherish'
+  // 原型属性
+  get myName() {
+    return this.name
+  }
+  // 原型上的方法
+  @Enum(false)
+  public eat() {
+    console.log('eat')
   }
 }
 
-const d = new Dog('yellow', 1)
-
-// Dog.color
-
-class Cat extends Animal {
-  constructor(name: string, height: number, private aName: string) {
-    super(name, height)
-    // Animal.call(this)
-  }
-  get newName() {
-    return this.aName
-  }
-  set newName(newVal) {
-    this.aName = newVal
-  }
-}
-
-const cat = new Cat('tom', 120, 'jack')
-
-// cat.newName
-
-// super 在构造函数和静态方法中 super 指向父亲
-// super 在原型方法中指代的是父亲的原型
+const person = new Person()
+// person.say
+// console.log(person, person.name)
+console.log(person)
 
 export {}
