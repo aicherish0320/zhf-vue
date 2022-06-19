@@ -7,6 +7,7 @@ export function initMixin(Vue) {
   Vue.prototype._init = function (options) {
     const vm = this
     vm.$options = options
+    // 全局定义的内容 会混合在当前实例上
     vm.$options = mergeOptions(vm.constructor.options, options)
 
     initState(vm)

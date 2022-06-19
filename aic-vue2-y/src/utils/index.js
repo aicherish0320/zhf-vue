@@ -33,7 +33,21 @@ lifecycle.forEach((hook) => {
     }
   }
 })
-// {} { beforeCreate: fn } => { beforeCreate: [fn] } 
+
+strategies.components = function (parentVal, childVal) {
+  // 合并后产生一个新对象 不用原来的
+  // ret.__proto__ = parentVal -> childVal.__proto__ = parentVal
+  let ret = Object.create(parentVal)
+  if (childVal) {
+    for (const key in childVal) {
+      ret[key] = childVal[key]
+    }
+  }
+
+  return ret
+}
+
+// {} { beforeCreate: fn } => { beforeCreate: [fn] }
 // { beforeCreate: [fn] }  { beforeCreate: fn } => { beforeCreate: [fn, fn] }
 export function mergeOptions(parentVal, childVal) {
   const options = {}
